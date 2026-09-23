@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SF Tech Week 视频素材图</title>
+<!--
+  EP1 静态素材页（PRD v1 Step 4）。与 index.html 共用 data.js。
+  用法：figures.html?fig=A&ratio=16x9    fig = A | C | D | E，ratio = 16x9 | 9x16
+        小红书 3:4 组图：fig = A | G | D | K | T，ratio = 3x4（G / K / T 只有 3:4）
+  导出：../analysis/export_figures.sh（headless Chrome 按 1920×1080 / 1080×1920 / 1080×1440 截图）
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+:root {
+  --ground: #f3f5f8;
+  --panel: #ffffff;
+  --ink: #141821;
+  --ink-2: #4f5665;
+  --ink-3: #858c9b;
+  --rule: #dde2e9;
+  --water: #e2eaf2;
+  --land: #fbfcfd;
+  --land-edge: #cbd4df;
+  --blue: #2a78d6;
+  --blue-soft: #86b6ef;
+  --red: #e34948;
+  --red-soft: #f2a3a2;
+  --mid: #e6e4df;
+  --other: #b4bcc8;
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--ground); color: var(--ink); font-family: var(--f-body); }
+body.index { padding: 32px; }
+.index a { display: block; font: 500 18px/1.9 var(--f-mono); color: var(--blue); }
+
+.canvas { position: relative; overflow: hidden; background: var(--ground); display: grid; }
+.r16x9 { width: 1920px; height: 1080px; padding: 64px 88px 96px; }
+.r9x16 { width: 1080px; height: 1920px; padding: 96px 64px 150px; }
+.r3x4 { width: 1080px; height: 1440px; padding: 80px 64px 110px; align-content: start; }
+.r3x4 .eyebrow { font-size: 26px; }
+.r3x4 h1 { font-size: 66px; }
+.r3x4 .sub { font-size: 32px; }
+.r3x4 .source { right: 64px; bottom: 40px; font-size: 24px; }
+
+.eyebrow { font: 500 22px/1 var(--f-mono); letter-spacing: .06em; color: var(--ink-3); text-transform: uppercase; }
+.r9x16 .eyebrow { font-size: 28px; }
+h1 { font: 700 64px/1.18 var(--f-body); margin: 20px 0 0; letter-spacing: -.01em; }
+.r9x16 h1 { font-size: 72px; }
+h1 .num { font: 800 1.12em/1 var(--f-display); font-stretch: 85%; color: var(--blue); }
+.sub { font: 400 28px/1.5 var(--f-body); color: var(--ink-2); margin: 20px 0 0; }
+.r9x16 .sub { font-size: 34px; }
+.source { position: absolute; right: 88px; bottom: 36px; font: 400 20px var(--f-body); color: var(--ink-3); }
+.r9x16 .source { right: 64px; bottom: 44px; font-size: 28px; }
+
+svg text { font-family: var(--f-body); }
+.land { fill: var(--land); stroke: var(--land-edge); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.bub { stroke: var(--ground); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.lbl { font-weight: 700; fill: var(--ink); paint-order: stroke; stroke: var(--land); stroke-linejoin: round; }
+.lbl .n { font-family: var(--f-mono); font-weight: 500; fill: var(--ink-2); }
+.lead { stroke: var(--ink-2); stroke-width: 1.2; vector-effect: non-scaling-stroke; fill: none; }
+
+/* A */
+.A16 { grid-template-columns: 560px 1fr; gap: 40px; align-items: start; }
+.A16 .map { width: 1184px; height: 900px; margin-top: -8px; }
+.A9 { grid-template-rows: auto 1fr auto; }
+.A9 .map { width: 952px; margin: 24px 0 0; }
+.big { font: 800 200px/0.9 var(--f-display); font-stretch: 80%; color: var(--blue); margin-top: 56px; letter-spacing: -.02em; }
+.r9x16 .big { font-size: 240px; margin-top: 40px; }
+.bigcap { font: 500 30px/1.45 var(--f-body); color: var(--ink); margin-top: 16px; }
+.r9x16 .bigcap { font-size: 36px; }
+.key { display: flex; gap: 28px; margin-top: 40px; font: 400 24px var(--f-body); color: var(--ink-2); flex-wrap: wrap; }
+.r9x16 .key { font-size: 30px; }
+.key i { display: inline-block; width: .8em; height: .8em; border-radius: 50%; margin-right: 10px; vertical-align: -.05em; }
+.off { margin-top: 44px; border-top: 1px solid var(--rule); padding-top: 24px; }
+.off h3 { font: 500 22px var(--f-body); color: var(--ink-3); margin: 0 0 14px; }
+.r9x16 .off h3 { font-size: 28px; }
+.off .row { display: flex; justify-content: space-between; font: 400 26px/1.7 var(--f-body); color: var(--ink-2); }
+.off .row b { font: 500 26px var(--f-mono); color: var(--ink); }
+.r9x16 .off .grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 56px; }
+.r9x16 .off .row { font-size: 30px; }
+.r9x16 .off .row b { font-size: 30px; }
+
+/* C */
+table { border-collapse: separate; border-spacing: 3px; font-variant-numeric: tabular-nums; }
+.heat td { text-align: center; border-radius: 6px; font: 500 22px var(--f-mono); }
+.heat th { font: 500 22px var(--f-body); color: var(--ink-2); white-space: nowrap; }
+.heat thead th { font-family: var(--f-mono); padding-bottom: 6px; }
+.heat tbody th { text-align: right; padding-right: 14px; }
+.heat .tot { font: 500 22px var(--f-mono); color: var(--ink-2); text-align: left; padding-left: 14px; }
+.heat .peak { box-shadow: inset 0 0 0 3px var(--ink); }
+.heatwrap { position: relative; justify-self: start; }
+.bracket { position: absolute; border: 3px solid var(--ink); border-radius: 10px; pointer-events: none; }
+.bracket span { position: absolute; white-space: nowrap; background: var(--ink); color: var(--panel); font: 700 26px/1 var(--f-body); padding: 10px 16px; border-radius: 8px; }
+.ramp { display: flex; align-items: center; gap: 6px; font: 400 22px var(--f-body); color: var(--ink-2); margin-top: 22px; flex-wrap: wrap; }
+.r9x16 .ramp { font-size: 28px; }
+.ramp i { display: inline-block; width: 44px; height: 22px; border-radius: 4px; }
+.fine { font: 400 20px/1.5 var(--f-body); color: var(--ink-3); margin-top: 10px; }
+.r9x16 .fine { font-size: 26px; }
+
+/* D */
+.multi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 28px; margin-top: 24px; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 16px 18px 6px; }
+.panel h2 { font: 700 26px/1.2 var(--f-body); margin: 0; display: flex; justify-content: space-between; align-items: baseline; }
+.panel h2 small { font: 500 22px var(--f-mono); color: var(--ink-3); }
+.panel .share { font: 400 22px var(--f-body); color: var(--ink-2); margin-top: 6px; }
+.panel .share b { font: 700 26px var(--f-display); color: var(--blue); }
+.panel svg { width: 100%; height: 222px; display: block; }
+
+/* E */
+.lift th { font: 500 21px/1.2 var(--f-body); color: var(--ink-2); }
+.lift thead th { font-size: 19px; vertical-align: bottom; text-align: center; padding: 0 2px 6px; width: 94px; }
+.lift thead th small { display: block; font: 400 18px var(--f-mono); color: var(--ink-3); margin-top: 4px; }
+.lift tbody th { text-align: right; padding-right: 14px; white-space: nowrap; }
+.lift td { width: 94px; height: 40px; text-align: center; font: 500 19px var(--f-mono); border-radius: 5px; }
+.lift td.low { color: var(--ink-3); }
+.lift td.sig { box-shadow: inset 0 0 0 4px var(--ink); font-weight: 700; }
+.lift td.near { box-shadow: inset 0 0 0 2px var(--ink-2); outline: none; background-image: repeating-linear-gradient(135deg, transparent 0 7px, rgb(20 24 33 / 10%) 7px 9px); }
+.E16 h1 { font-size: 56px; }
+.E16 .sub { margin-top: 12px; }
+.E16 .body { display: grid; grid-template-columns: auto 1fr; gap: 36px; margin-top: 20px; align-items: end; }
+.E16 .legend { display: grid; gap: 12px; font: 400 20px/1.35 var(--f-body); color: var(--ink-2); padding-bottom: 4px; }
+.E16 .legend i { display: inline-block; width: 36px; height: 22px; border-radius: 4px; vertical-align: -4px; margin-right: 10px; }
+.E16 .legend p { margin: 8px 0 0; color: var(--ink-3); font-size: 18px; }
+
+/* 3:4 carousel (Xiaohongshu) */
+.A3 .stat { display: flex; align-items: flex-end; gap: 36px; margin-top: 28px; }
+.A3 .big { font-size: 190px; margin-top: 0; }
+.A3 .bigcap { font-size: 32px; margin: 0 0 18px; }
+.A3 .key { font-size: 26px; margin-top: 14px; gap: 22px; }
+.A3 .map { width: 952px; height: 700px; margin-top: 12px; }
+.A3 .fine, .K3 .fine { font-size: 25px; margin-top: 12px; }
+.D3 .multi { grid-template-columns: 1fr 1fr; gap: 16px 24px; margin-top: 28px; }
+.D3 .panel h2 { font-size: 30px; }
+.D3 .panel h2 small, .D3 .panel .share { font-size: 26px; }
+.D3 .panel .share b { font-size: 30px; }
+.D3 .panel svg { height: 176px; }
+.D3 .key { font-size: 24px; gap: 8px 24px; }
+.cards { display: grid; gap: 20px; margin-top: 40px; }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: 18px; padding: 26px 32px; }
+.card .q { font: 700 36px/1.35 var(--f-body); }
+.card .q small { display: block; font: 400 28px/1.4 var(--f-body); color: var(--ink-2); margin-top: 4px; }
+.card .a { font: 400 30px/1.45 var(--f-body); color: var(--ink-2); margin-top: 12px; }
+.card .a b { color: var(--ink); }
+.card .tag { display: inline-block; font: 700 26px/1 var(--f-body); padding: 8px 14px; border-radius: 8px; margin-right: 12px; vertical-align: 3px; }
+.tag.no { background: var(--mid); color: var(--ink-2); }
+.tag.yes { background: var(--red); color: #fff; }
+.tag.near { background: var(--red-soft); color: var(--ink); }
+.punch { font: 700 40px/1.4 var(--f-body); margin-top: 36px; }
+.punch .num { font: 800 1.2em/1 var(--f-display); font-stretch: 85%; color: var(--red); }
+.K3 .map { width: 952px; height: 390px; margin-top: 20px; }
+.steps { display: grid; gap: 22px; margin-top: 44px; }
+.step { display: grid; grid-template-columns: 76px 1fr; gap: 20px; background: var(--panel); border: 1px solid var(--rule); border-radius: 18px; padding: 28px 32px; }
+.step .n { font: 800 64px/1 var(--f-display); color: var(--blue); }
+.step h2 { font: 700 38px/1.3 var(--f-body); margin: 0; }
+.step p { font: 400 29px/1.5 var(--f-body); color: var(--ink-2); margin: 10px 0 0; }
+.cta { font: 500 32px/1.5 var(--f-body); margin-top: 36px; padding: 24px 32px; border-radius: 18px; background: var(--ink); color: var(--panel); }
+</style>
+<body>
+<div id="root"></div>
+<script src="data.js"></script>
+<script>
+(() => {
+  const TW = window.TW;
+  const P = new URLSearchParams(location.search);
+  const FIG = P.get("fig"), RATIO = ["9x16", "3x4"].includes(P.get("ratio")) ? P.get("ratio") : "16x9";
+  const root = document.getElementById("root");
+
+  const DOMAIN_ZH = {
+    "AI Agents & DevTools": "AI Agent 与开发工具", "AI Infra & Compute": "AI 基础设施与算力",
+    "Deep Tech & Hardware": "深科技与硬件", "Bio & Health": "生物与健康", "Fintech & Crypto": "金融科技与加密",
+    "GTM & Sales": "GTM 与销售", "Fundraising & Investing": "融资与投资", "Creator, Media & Consumer": "创作者、媒体与消费",
+    "Enterprise & SaaS": "企业服务与 SaaS", "Global Founders": "出海与国际创始人", "Cybersecurity": "网络安全",
+    "Climate": "气候", "People & Hiring": "人才与招聘", "Women-focused": "女性主题",
+  };
+  const DAY_ZH = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
+  const DAY_DATE = ["10/5", "10/6", "10/7", "10/8", "10/9", "10/10", "10/11"];
+  const EYEBROW = "SF Tech Week 2026 · 10/5–10/11";
+  const SOURCE = "数据：tech-week.com 官方日历，2026-09-23 快照";
+  const CORE3 = ["SOMA", "FiDi", "Downtown"];
+  const NS = "http://www.w3.org/2000/svg";
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const fmt = (n) => n.toLocaleString("en-US");
+  const pct = (a, b) => (100 * a / b).toFixed(1) + "%";
+  const el = (tag, attrs = {}, parent) => {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  };
+
+  const ev = TW.events;               // [hood, day, hour, domainMask, name, host, time, status, url]
+  const hoods = TW.hoods;
+  const N = ev.length;
+  const hoodIdx = Object.fromEntries(hoods.map((h, i) => [h.name, i]));
+  const countBy = (pred) => {
+    const n = new Array(hoods.length).fill(0);
+    for (const e of ev) if (pred(e)) n[e[0]]++;
+    return n;
+  };
+  const allCounts = countBy(() => true);
+  const core3N = CORE3.reduce((s, h) => s + allCounts[hoodIdx[h]], 0);
+  const regionN = (r) => hoods.reduce((s, h, i) => s + (h.region === r ? allCounts[i] : 0), 0);
+
+  function shell(cls) {
+    const c = document.createElement("div");
+    c.className = `canvas r${RATIO} ${cls}`;
+    root.appendChild(c);
+    const s = document.createElement("div");
+    s.className = "source"; s.textContent = SOURCE;
+    c.appendChild(s);
+    return c;
+  }
+  const html = (parent, markup) => { parent.insertAdjacentHTML("beforeend", markup); return parent.lastElementChild; };
+
+  // ---------- map helpers ----------
+  // viewBox units come from build_data.py's projection (1000 units across the city).
+  function baseMap(svg, view) {
+    svg.setAttribute("viewBox", view.join(" "));
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    el("rect", { x: -500, y: -500, width: 2000, height: 2000, fill: css("--water") }, svg);
+    const g = el("g", {}, svg);
+    for (const s of TW.shapes) el("path", { d: s.d, class: "land" }, g);
+  }
+  function bubbles(svg, counts, k, colorOf) {
+    const g = el("g", {}, svg);
+    // Largest first so small bubbles stay visible on top.
+    const order = hoods.map((h, i) => i).filter((i) => hoods[i].xy && counts[i] > 0).sort((a, b) => counts[b] - counts[a]);
+    for (const i of order) {
+      el("circle", { cx: hoods[i].xy[0], cy: hoods[i].xy[1], r: (k * Math.sqrt(counts[i])).toFixed(2), class: "bub", fill: colorOf(i), "fill-opacity": .9 }, g);
+    }
+  }
+  // Label spec: [hood, dx, dy, anchor] in viewBox units relative to the hood center; a non-zero
+  // offset beyond the bubble draws a leader line.
+  function labels(svg, counts, k, specs, fs) {
+    const g = el("g", {}, svg);
+    for (const [name, dx, dy, anchor] of specs) {
+      const i = hoodIdx[name];
+      const [x, y] = hoods[i].xy;
+      const r = k * Math.sqrt(counts[i]);
+      const lx = x + dx, ly = y + dy;
+      if (Math.hypot(dx, dy) > r + fs) {
+        const a = Math.atan2(dy, dx);
+        el("path", { d: `M${x + r * Math.cos(a)},${y + r * Math.sin(a)}L${lx - (anchor === "end" ? -6 : 6)},${ly - fs * 0.35}`, class: "lead" }, g);
+      }
+      const t = el("text", { x: lx, y: ly, "text-anchor": anchor || "start", class: "lbl", style: `font-size:${fs}px;stroke-width:${fs * 0.28}px` }, g);
+      t.textContent = name + " ";
+      el("tspan", { class: "n", style: `font-size:${fs * 0.9}px` }, t).textContent = counts[i];
+    }
+  }
+
+  // ---------- A: where the week happens ----------
+  function figA() {
+    if (RATIO === "3x4") return figA3();
+    const tall = RATIO === "9x16";
+    const c = shell(tall ? "A9" : "A16");
+    const text = html(c, `<div>
+      <div class="eyebrow">${EYEBROW}</div>
+      <h1>${fmt(N)} 场活动，<br>一半挤在三个街区</h1>
+      <div class="big">${pct(core3N, N)}</div>
+      <div class="bigcap">SOMA ${allCounts[hoodIdx.SOMA]} · FiDi ${allCounts[hoodIdx.FiDi]} · Downtown ${allCounts[hoodIdx.Downtown]}<br>三个相邻街区</div>
+      <div class="key"><span><i style="background:var(--blue)"></i>这三个街区</span><span><i style="background:var(--other)"></i>其他街区</span><span>气泡面积 = 活动场数</span></div>
+    </div>`);
+    const svg = el("svg", { class: "map" });
+    c.appendChild(svg);
+    const view = tall ? [180, 150, 850, 560] : [150, 150, 850, 646];
+    if (tall) svg.style.height = svg.clientWidth * view[3] / view[2] + "px";
+    baseMap(svg, view);
+    const k = 2.0;
+    bubbles(svg, allCounts, k, (i) => (CORE3.includes(hoods[i].name) ? css("--blue") : css("--other")));
+    const px = svg.clientWidth / view[2];
+    const fs = (tall ? 28 : 26) / px;
+    labels(svg, allCounts, k, [
+      ["FiDi", -20, -78, "middle"], ["Embarcadero", 40, -26, "start"], ["Downtown", 110, 30, "start"],
+      ["SOMA", 105, 20, "start"], ["Union Square", -36, 16, "end"], ["Mission", 0, 58, "middle"],
+      ["Dogpatch", 22, 12, "start"], ["Marina", 0, -26, "middle"],
+    ], fs);
+    const off = [["Peninsula & South Bay", "半岛与南湾"], ["Virtual", "线上"], ["East Bay", "East Bay"], ["Unknown", "地点不明"]];
+    html(tall ? c : text, `<div class="off"><h3>不在旧金山地图上</h3><div class="grid">${off.map(([r, zh]) => `<div class="row"><span>${zh}</span><b>${regionN(r)}</b></div>`).join("")}</div></div>`);
+  }
+
+  // ---------- C: day × start hour ----------
+  const SEQ = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"];
+  const SEQ_EDGES = [1, 3, 6, 10, 20, 35, 55]; // lower bound of each step
+  const seqStep = (v) => { let s = -1; SEQ_EDGES.forEach((e, j) => { if (v >= e) s = j; }); return s; };
+  function figC() {
+    const tall = RATIO === "9x16";
+    const c = shell(tall ? "C9" : "C16");
+    const H0 = 7, H1 = 21;
+    const hours = []; for (let h = H0; h <= H1; h++) hours.push(h);
+    const m = DAY_ZH.map(() => hours.map(() => 0));
+    let peakN = 0, timed = 0, outside = 0;
+    for (const e of ev) {
+      if (e[2] < 0) continue;
+      timed++;
+      if (e[2] === 17 || e[2] === 18) peakN++;
+      if (e[2] < H0 || e[2] > H1) { outside++; continue; }
+      m[e[1]][e[2] - H0]++;
+    }
+    const dayTot = m.map((r) => r.reduce((a, b) => a + b, 0));
+    html(c, `<div>
+      <div class="eyebrow">${EYEBROW}</div>
+      <h1>下班后才是主场：<span class="num">${pct(peakN, timed)}</span> 在 17–18 点开始</h1>
+      <div class="sub">每格 = 某天某个整点开始的活动数${tall ? "；框内 = 17–18 点开始，共 " + fmt(peakN) + " 场" : ""}。周二到周四最密，周末明显变少。</div>
+    </div>`);
+    const cell = (v) => {
+      const s = seqStep(v);
+      const bg = s < 0 ? "transparent" : SEQ[s];
+      const col = s >= 3 ? "#fff" : "var(--ink)";
+      return `<td style="background:${bg};color:${s < 0 ? "var(--ink-3)" : col}">${v || "·"}</td>`;
+    };
+    let t;
+    if (!tall) {
+      t = `<table class="heat"><thead><tr><th></th>${hours.map((h) => `<th>${h}</th>`).join("")}<th></th></tr></thead><tbody>` +
+        DAY_ZH.map((d, i) => `<tr><th>${d} <span style="color:var(--ink-3)">${DAY_DATE[i]}</span></th>${m[i].map(cell).join("")}<td class="tot">${dayTot[i]}</td></tr>`).join("") +
+        `</tbody></table>`;
+    } else {
+      t = `<table class="heat"><thead><tr><th></th>${DAY_ZH.map((d) => `<th style="font-family:var(--f-body)">${d.slice(1)}</th>`).join("")}</tr></thead><tbody>` +
+        hours.map((h, j) => `<tr><th style="font-family:var(--f-mono)">${h}:00</th>${m.map((r) => cell(r[j])).join("")}</tr>`).join("") +
+        `<tr><th style="font-size:22px">合计</th>${dayTot.map((v) => `<td class="tot" style="text-align:center;padding:0">${v}</td>`).join("")}</tr></tbody></table>`;
+    }
+    const wrap = html(c, `<div class="heatwrap" style="margin-top:${tall ? 40 : 76}px">${t}</div>`);
+    const tbl = wrap.querySelector("table");
+    if (tall) {
+      tbl.querySelectorAll("td:not(.tot)").forEach((td) => { td.style.width = "118px"; td.style.height = "64px"; td.style.fontSize = "28px"; });
+      tbl.querySelectorAll("th").forEach((th) => { th.style.fontSize = "28px"; });
+    } else {
+      tbl.querySelectorAll("td:not(.tot)").forEach((td) => { td.style.width = "88px"; td.style.height = "70px"; });
+    }
+    // Bracket around the 17 & 18 o'clock band.
+    const rows = [...tbl.tBodies[0].rows];
+    const first = tall ? rows[17 - H0].cells[1] : rows[0].cells[1 + 17 - H0];
+    const last = tall ? rows[18 - H0].cells[7] : rows[6].cells[1 + 18 - H0];
+    const wr = wrap.getBoundingClientRect(), a = first.getBoundingClientRect(), b = last.getBoundingClientRect();
+    const br = html(wrap, `<div class="bracket">${tall ? "" : `<span>17–18 点开始 · ${fmt(peakN)} 场</span>`}</div>`);
+    const pad = 6;
+    Object.assign(br.style, { left: a.left - wr.left - pad + "px", top: a.top - wr.top - pad + "px", width: b.right - a.left + 2 * pad + "px", height: b.bottom - a.top + 2 * pad + "px" });
+    // 16:9: the tag sits above the hour header so it never covers numbers.
+    const lab = br.querySelector("span");
+    if (lab) {
+      const headTop = tbl.tHead.getBoundingClientRect().top - a.top + pad;
+      Object.assign(lab.style, { left: "50%", transform: "translate(-50%, -100%)", top: headTop - 8 + "px" });
+    }
+    const labels = ["1–2", "3–5", "6–9", "10–19", "20–34", "35–54", "55+"];
+    html(c, `<div>
+      <div class="ramp"><span style="margin-right:8px">活动数</span>${SEQ.map((s, j) => `<i style="background:${s}" title="${labels[j]}"></i>`).join("")}<span style="margin-left:8px;font-family:var(--f-mono)">1 → ${Math.max(...m.flat())}</span></div>
+      <div class="fine">共 ${fmt(timed)} 场有可信开始时间；${H0} 点前或 ${H1} 点后开始的 ${outside} 场未画出，另有 4 场 0–6 点开始的时间可疑、不计入。</div>
+    </div>`);
+  }
+
+  // 3:4 cover: headline + number on top, the map fills the rest; off-map counts as one line.
+  function figA3() {
+    const c = shell("A3");
+    html(c, `<div>
+      <div class="eyebrow">${EYEBROW}</div>
+      <h1>${fmt(N)} 场活动，<br>一半挤在三个街区</h1>
+      <div class="stat"><div class="big">${pct(core3N, N)}</div><div>
+        <div class="bigcap">SOMA ${allCounts[hoodIdx.SOMA]} · FiDi ${allCounts[hoodIdx.FiDi]}<br>Downtown ${allCounts[hoodIdx.Downtown]}<br>三个相邻街区</div>
+        <div class="key"><span><i style="background:var(--blue)"></i>这三个街区</span><span><i style="background:var(--other)"></i>其他</span><span>面积 = 场数</span></div>
+      </div></div>
+    </div>`);
+    const svg = el("svg", { class: "map" });
+    c.appendChild(svg);
+    const view = [170, 130, 860, 690];
+    baseMap(svg, view);
+    const k = 2.0;
+    bubbles(svg, allCounts, k, (i) => (CORE3.includes(hoods[i].name) ? css("--blue") : css("--other")));
+    const px = Math.min(svg.clientWidth / view[2], svg.clientHeight / view[3]);
+    labels(svg, allCounts, k, [
+      ["FiDi", -20, -78, "middle"], ["Embarcadero", 40, -26, "start"], ["Downtown", 110, 30, "start"],
+      ["SOMA", 105, 20, "start"], ["Union Square", -36, 16, "end"], ["Mission", 0, 58, "middle"],
+      ["Dogpatch", 22, 12, "start"], ["Marina", 0, -26, "middle"],
+    ], 28 / px);
+    const off = [["Peninsula & South Bay", "半岛与南湾"], ["Virtual", "线上"], ["East Bay", "East Bay"], ["Unknown", "地点不明"]];
+    html(c, `<div class="fine">另有 ${off.reduce((s, [r]) => s + regionN(r), 0)} 场不在旧金山地图上<br>${off.map(([r, zh]) => `${zh} ${regionN(r)}`).join(" · ")}</div>`);
+  }
+
+  // ---------- D: six domains, same three neighborhoods ----------
+  function figD() {
+    const three4 = RATIO === "3x4";
+    const c = shell(three4 ? "D3" : "D16");
+    const top = TW.domains.map((d, i) => [i, ev.filter((e) => e[3] & (1 << i)).length]).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const shares = top.map(([di]) => {
+      const n = countBy((e) => e[3] & (1 << di));
+      const tot = n.reduce((a, b) => a + b, 0);
+      return { di, n, tot, core: CORE3.reduce((s, h) => s + n[hoodIdx[h]], 0) };
+    });
+    const lo = Math.min(...shares.map((s) => s.core / s.tot)), hi = Math.max(...shares.map((s) => s.core / s.tot));
+    html(c, `<div>
+      <div class="eyebrow">${EYEBROW}</div>
+      <h1>换哪个领域看，都是同一片</h1>
+      <div class="sub">${three4 ? `最多的 6 个领域，各有 ${Math.round(lo * 100)}–${Math.round(hi * 100)}% 在这三个区` : `活动最多的 6 个领域里，各有 ${Math.round(lo * 100)}–${Math.round(hi * 100)}% 在 SOMA · FiDi · Downtown`}</div>
+    </div>`);
+    const grid = html(c, `<div class="multi"></div>`);
+    const view = [400, 170, 500, 450];
+    for (const s of shares) {
+      const d = TW.domains[s.di];
+      const p = html(grid, `<div class="panel"><h2>${DOMAIN_ZH[d]}<small>${s.tot} 场</small></h2>
+        <div class="share">三街区占 <b>${pct(s.core, s.tot)}</b></div></div>`);
+      const svg = el("svg"); p.appendChild(svg);
+      baseMap(svg, view);
+      const k = 3.6;
+      bubbles(svg, s.n, k, (i) => (CORE3.includes(hoods[i].name) ? css("--blue") : css("--other")));
+      // The one domain with a significant cluster elsewhere gets its callout.
+      const sig = TW.lift.find((L) => L.sig && L.domain === d);
+      if (sig) {
+        const px = svg.getBoundingClientRect().height / view[3];
+        labels(svg, s.n, k, [[sig.hood, -38, 34, "end"]], (three4 ? 26 : 22) / px);
+        html(p.querySelector(".share"), three4 ? `<span style="margin-left:10px">${sig.hood} 偏多</span>` : `<span style="margin-left:14px">${sig.hood} 偏多（lift ${sig.lift.toFixed(2)}）</span>`);
+      }
+    }
+    html(c, three4
+      ? `<div class="key" style="margin-top:18px"><span><i style="background:var(--blue)"></i>SOMA · FiDi · Downtown</span><span><i style="background:var(--other)"></i>其他街区</span><span>气泡面积 = 场数，一场活动可属于多个领域</span></div>`
+      : `<div class="key" style="margin-top:18px;font-size:22px"><span><i style="background:var(--blue)"></i>SOMA · FiDi · Downtown</span><span><i style="background:var(--other)"></i>其他街区</span><span>气泡面积 = 该领域活动场数（6 张图同一比例）</span><span>一场活动可属于多个领域</span></div>`);
+  }
+
+  // ---------- E: lift table ----------
+  const liftColor = (l) => (l >= 1.5 ? css("--red") : l >= 1.15 ? css("--red-soft") : l > 0.87 ? css("--mid") : l > 0.67 ? css("--blue-soft") : css("--blue"));
+  function figE() {
+    const c = shell("E16");
+    const sig = TW.lift.filter((L) => L.sig);
+    html(c, `<div>
+      <div class="eyebrow">${EYEBROW} · 街区 × 领域</div>
+      <h1>${TW.lift.length} 个组合里，只有 <span class="num">${sig.length}</span> 个真的扎堆</h1>
+      <div class="sub">${sig.map((L) => `${L.hood} × ${DOMAIN_ZH[L.domain]} <b style="color:var(--ink)">${L.lift.toFixed(2)}×</b>`).join("　·　")}</div>
+    </div>`);
+    const byKey = {};
+    TW.lift.forEach((L) => (byKey[L.hood + "|" + L.domain] = L));
+    const hoodsH = [...new Set(TW.lift.map((L) => L.hood))].sort((a, b) => byKey[b + "|" + TW.domains[0]].n - byKey[a + "|" + TW.domains[0]].n);
+    const domCount = TW.domains.map((d, i) => ev.filter((e) => e[3] & (1 << i)).length);
+    const order = TW.domains.map((d, i) => i).sort((a, b) => domCount[b] - domCount[a]);
+    let t = `<table class="lift"><thead><tr><th></th>${hoodsH.map((h) => `<th>${h}<small>${byKey[h + "|" + TW.domains[0]].n}</small></th>`).join("")}</tr></thead><tbody>`;
+    for (const di of order) {
+      const d = TW.domains[di];
+      t += `<tr><th>${DOMAIN_ZH[d]}</th>`;
+      for (const h of hoodsH) {
+        const L = byKey[h + "|" + d];
+        if (L.k < 5) { t += `<td class="low">·</td>`; continue; }
+        const cls = L.sig ? "sig" : (L.q < 0.10 && L.lift > 1 ? "near" : "");
+        const strong = L.lift >= 1.5 || L.lift <= 0.67;
+        t += `<td class="${cls}" style="background-color:${liftColor(L.lift)};color:${strong ? "#fff" : "var(--ink)"}">${L.lift.toFixed(2)}</td>`;
+      }
+      t += "</tr>";
+    }
+    const sw = [["--red", "≥ 1.5 偏多"], ["--red-soft", "1.15–1.5"], ["--mid", "和全城持平"], ["--blue-soft", "0.67–0.87"], ["--blue", "≤ 0.67 偏少"]];
+    html(c, `<div class="body"><div>${t}</tbody></table></div><div class="legend">
+      ${sw.map(([v, l]) => `<span><i style="background:var(${v})"></i>${l}</span>`).join("")}
+      <span><i style="box-shadow:inset 0 0 0 4px var(--ink)"></i>显著（q &lt; 0.05）</span>
+      <span><i style="box-shadow:inset 0 0 0 2px var(--ink-2);background-image:repeating-linear-gradient(135deg,transparent 0 7px,rgb(20 24 33 / 10%) 7px 9px)"></i>接近显著（q &lt; 0.10）</span>
+      <span><i style="text-align:center;font:500 20px/22px var(--f-mono);color:var(--ink-3)">·</i>少于 5 场，不判断</span>
+      <p>颜色只表示占比高低；只有粗框的格子通过了多重检验校正（BH）。<br><br>Lift = 该领域在这个街区的占比 ÷ 在全城的占比。只列全周 ≥ 25 场的 12 个街区，列名下为场数。</p>
+    </div></div>`);
+  }
+
+  // ---------- 3:4 carousel extras (Xiaohongshu note 1) ----------
+  const L = (hood, domain) => TW.lift.find((x) => x.hood === hood && x.domain === domain);
+  // City share over physical events (not Virtual / Unknown), same base as analyze.py.
+  const phys = ev.filter((e) => !["Virtual", "Unknown"].includes(hoods[e[0]].region));
+  const cityShare = (x) => { const di = TW.domains.indexOf(x.domain); return phys.filter((e) => e[3] & (1 << di)).length / phys.length; };
+
+  // G: the guesses I started with, each checked against the lift table.
+  function figG() {
+    const c = shell("G3");
+    const sig = TW.lift.filter((x) => x.sig);
+    const mb = L("Mission Bay", "Bio & Health"), dp = L("Dogpatch", "Deep Tech & Hardware");
+    const coreSig = TW.lift.filter((x) => CORE3.includes(x.hood) && x.sig).length;
+    const paSig = TW.lift.filter((x) => x.hood === "Palo Alto" && x.sig).length;
+    html(c, `<div>
+      <div class="eyebrow">${EYEBROW} · 假设验证</div>
+      <h1>我原本以为：<br>同类活动会扎堆</h1>
+      <div class="sub">于是把 12 个街区 × 14 个领域的 ${TW.lift.length} 个组合，一个个做了检验</div>
+      <div class="cards">
+        <div class="card"><div class="q">Mission Bay 偏生物医药？<small>UCSF 的校区就在这里</small></div>
+          <div class="a"><span class="tag no">不成立</span>全周只有 <b>${mb.k} 场</b>生物与健康活动</div></div>
+        <div class="card"><div class="q">Dogpatch 偏硬件、深科技？<small>老工业区，印象里硬件公司多</small></div>
+          <div class="a"><span class="tag no">不成立</span>${dp.k} 场，比例略高但<b>不显著</b></div></div>
+        <div class="card"><div class="q">Palo Alto 偏技术研发？</div>
+          <div class="a"><span class="tag no">不成立</span>${paSig ? paSig + " 个领域显著" : "<b>没有一个领域</b>明显偏多"}</div></div>
+        <div class="card"><div class="q">SOMA、FiDi、Downtown 各有专长？</div>
+          <div class="a"><span class="tag no">不成立</span>${coreSig ? coreSig + " 个组合显著" : "三个区里<b>哪类活动都有</b>"}</div></div>
+      </div>
+      <div class="punch">${TW.lift.length} 个组合里，只有 <span class="num">${sig.length}</span> 个真的扎堆 →</div>
+    </div>`);
+  }
+
+  // K: the only real clusters, plus the near-significant wellness pair, on a small map.
+  function figK() {
+    const c = shell("K3");
+    const mi = L("Mission", "Creator, Media & Consumer"), hv = L("Hayes Valley", "Women-focused");
+    const hh = L("Hayes Valley", "Bio & Health"), mr = L("Marina", "Bio & Health");
+    const p = (x) => (100 * x).toFixed(1) + "%";
+    html(c, `<div>
+      <div class="eyebrow">${EYEBROW} · 真正的小圈子</div>
+      <h1>想找特定圈子，<br>才需要换街区</h1>
+      <div class="cards" style="margin-top:32px">
+        <div class="card"><div class="q"><span class="tag yes">显著</span>Mission × 创作者、媒体与消费</div>
+          <div class="a">${mi.k} / ${mi.n} 场，占 <b>${p(mi.k / mi.n)}</b>（全城 ${p(cityShare(mi))}），是平均的 <b>${mi.lift.toFixed(2)} 倍</b></div></div>
+        <div class="card"><div class="q"><span class="tag yes">显著</span>Hayes Valley × 女性主题</div>
+          <div class="a">${hv.k} / ${hv.n} 场，占 <b>${p(hv.k / hv.n)}</b>（全城 ${p(cityShare(hv))}），是平均的 <b>${hv.lift.toFixed(2)} 倍</b></div></div>
+        <div class="card"><div class="q"><span class="tag near">有迹象</span>Marina · Hayes Valley × 健康 / 长寿</div>
+          <div class="a">分别 ${mr.k} 场、${hh.k} 场，约为平均的 <b>${mr.lift.toFixed(1)}–${hh.lift.toFixed(1)} 倍</b>；多是日出冷水浴、长寿早午餐、女性健康这类活动，不是生物医药</div></div>
+      </div>
+    </div>`);
+    const svg = el("svg", { class: "map" });
+    c.appendChild(svg);
+    const view = [150, 212, 960, 410];
+    baseMap(svg, view);
+    const hi = { Mission: css("--red"), "Hayes Valley": css("--red"), Marina: css("--red-soft") };
+    const k = 1.6;
+    bubbles(svg, allCounts, k, (i) => hi[hoods[i].name] || css("--other"));
+    const px = Math.min(svg.clientWidth / view[2], svg.clientHeight / view[3]);
+    labels(svg, allCounts, k, [["Mission", 30, 24, "start"], ["Hayes Valley", -24, 6, "end"], ["Marina", 22, 16, "start"]], 26 / px);
+    html(c, `<div class="fine">气泡面积 = 全部活动场数；红色 = 显著，浅红 = 接近显著</div>`);
+  }
+
+  // T: takeaways + tease the next note.
+  function figT() {
+    const c = shell("T3");
+    let peakN = 0, timed = 0;
+    for (const e of ev) { if (e[2] < 0) continue; timed++; if (e[2] === 17 || e[2] === 18) peakN++; }
+    html(c, `<div>
+      <div class="eyebrow">${EYEBROW}</div>
+      <h1>所以，科技周怎么逛？</h1>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div><h2>大部分时间待在三个核心区</h2>
+          <p>SOMA、FiDi、Downtown 挨在一起，哪个领域的活动都有；在同一个区里连着赶场，少花时间在路上。</p></div></div>
+        <div class="step"><div class="n">2</div><div><h2>想找圈子，再换街区</h2>
+          <p>创作者、消费类去 Mission；女性主题去 Hayes Valley；健康、长寿去 Marina 和 Hayes Valley。</p></div></div>
+        <div class="step"><div class="n">3</div><div><h2>时间比地点更关键</h2>
+          <p><b style="color:var(--ink)">${pct(peakN, timed)}</b> 的活动在 17–18 点开始，下班后才是主场。下一篇专门讲时间怎么安排。</p></div></div>
+      </div>
+      <div class="cta">评论区告诉我你是工程师、创业者还是创作者，<br>下一篇按人群推荐活动 👇</div>
+    </div>`);
+  }
+
+  const FIGS = { A: figA, C: figC, D: figD, E: figE, G: figG, K: figK, T: figT };
+  const run = () => {
+    if (FIGS[FIG]) { FIGS[FIG](); document.body.dataset.ready = "1"; return; }
+    document.body.className = "index";
+    root.innerHTML = "<h1 style='font-size:32px'>EP1 素材图</h1>" +
+      [["A", "16x9"], ["A", "9x16"], ["C", "16x9"], ["C", "9x16"], ["D", "16x9"], ["E", "16x9"],
+       ["A", "3x4"], ["G", "3x4"], ["D", "3x4"], ["K", "3x4"], ["T", "3x4"]]
+        .map(([f, r]) => `<a href="?fig=${f}&ratio=${r}">${f} · ${r}</a>`).join("");
+  };
+  // Layout-dependent pieces (label sizes, the bracket) need the web fonts in place first.
+  document.fonts.ready.then(run);
+})();
+</script>

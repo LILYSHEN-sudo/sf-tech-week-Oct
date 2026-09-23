@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SF Tech Week 活动地图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+:root {
+  --ground: #f3f5f8;
+  --panel: #ffffff;
+  --ink: #141821;
+  --ink-2: #4f5665;
+  --ink-3: #858c9b;
+  --rule: #dde2e9;
+  --water: #e2eaf2;
+  --land: #fbfcfd;
+  --land-edge: #cbd4df;
+  --blue: #2a78d6;
+  --blue-soft: #86b6ef;
+  --red: #e34948;
+  --red-soft: #f2a3a2;
+  --mid: #e6e4df;
+  --focus: #1c5cab;
+  --shadow: 0 1px 2px rgb(20 24 33 / 6%), 0 8px 24px rgb(20 24 33 / 6%);
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #10141a;
+    --panel: #171c24;
+    --ink: #eef1f6;
+    --ink-2: #b3bac6;
+    --ink-3: #7e8696;
+    --rule: #28303b;
+    --water: #0c131b;
+    --land: #1b222c;
+    --land-edge: #313b49;
+    --blue: #3987e5;
+    --blue-soft: #1c5cab;
+    --red: #e66767;
+    --red-soft: #8e3a3a;
+    --mid: #383835;
+    --focus: #86b6ef;
+    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px rgb(0 0 0 / 25%);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #10141a;
+  --panel: #171c24;
+  --ink: #eef1f6;
+  --ink-2: #b3bac6;
+  --ink-3: #7e8696;
+  --rule: #28303b;
+  --water: #0c131b;
+  --land: #1b222c;
+  --land-edge: #313b49;
+  --blue: #3987e5;
+  --blue-soft: #1c5cab;
+  --red: #e66767;
+  --red-soft: #8e3a3a;
+  --mid: #383835;
+  --focus: #86b6ef;
+  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px rgb(0 0 0 / 25%);
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 15px/1.6 var(--f-body);
+  padding-inline: 16px;
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 28px; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+/* Header */
+header { display: grid; gap: 18px; }
+.eyebrow {
+  font: 500 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+}
+h1 {
+  font: 800 clamp(30px, 5vw, 52px)/1.05 var(--f-display); font-stretch: 80%;
+  letter-spacing: -.01em; margin: 0; text-wrap: balance;
+}
+h1 .zh { font-family: var(--f-body); font-weight: 700; font-size: .78em; letter-spacing: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--ink-2); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.fact { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
+.fact b { font: 800 34px/1 var(--f-display); font-stretch: 78%; font-variant-numeric: tabular-nums; }
+.fact span { color: var(--ink-2); font-size: 13.5px; }
+
+/* Main grid */
+.main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; }
+.mapcard { position: relative; overflow: hidden; box-shadow: var(--shadow); }
+.mapbar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--rule); }
+.mapstatus { font: 500 13px/1.3 var(--f-mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.mapstatus b { color: var(--ink); font-weight: 500; }
+svg.map { display: block; width: 100%; height: auto; aspect-ratio: 1000 / 760; background: var(--water); touch-action: manipulation; }
+.land { fill: var(--land); stroke: var(--land-edge); stroke-width: .8; vector-effect: non-scaling-stroke; }
+.bubble { stroke: var(--panel); stroke-width: 2; vector-effect: non-scaling-stroke; cursor: pointer; transition: r .35s ease, fill .25s ease; }
+.bubble.faint { cursor: default; }
+.bubble.sel { stroke: var(--ink); stroke-width: 2.5; }
+.ring { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+.lbl { font: 600 13px/1 var(--f-body); fill: var(--ink); paint-order: stroke; stroke: var(--land); stroke-width: 3.5px; stroke-linejoin: round; pointer-events: none; }
+.lbl .n { font: 500 12px var(--f-mono); fill: var(--ink-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--rule); font-size: 12.5px; color: var(--ink-2); }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -2px; margin-right: 5px; border: 1px solid var(--rule); }
+.ramp { display: inline-flex; gap: 2px; vertical-align: -2px; margin-inline: 4px; }
+.ramp i { width: 18px; height: 10px; border-radius: 2px; display: block; }
+.dash { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 1.5px dashed var(--ink); vertical-align: -3px; margin-right: 5px; }
+
+/* Segmented + chips */
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.seg button { font: 500 13px/1 var(--f-body); color: var(--ink-2); background: transparent; border: 0; padding: 7px 11px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.side { display: grid; gap: 16px; }
+.panel { padding: 16px; display: grid; gap: 12px; }
+.panel h2 { font: 700 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 13px/1 var(--f-body); color: var(--ink-2); background: var(--ground); border: 1px solid var(--rule); border-radius: 999px; padding: 7px 11px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--panel); }
+.chip small { font: 500 11px var(--f-mono); opacity: .7; margin-left: 4px; }
+.days { display: flex; flex-wrap: wrap; gap: 6px; }
+.days .seg { width: 100%; }
+.days .seg button { flex: 1; padding: 7px 0; white-space: nowrap; }
+
+/* Hour chart */
+.hourhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.btn { font: 600 13px/1 var(--f-body); border: 1px solid var(--ink); background: var(--ink); color: var(--panel); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+svg.hours { width: 100%; height: auto; display: block; overflow: visible; }
+.hbar { fill: var(--blue); cursor: pointer; }
+.hbar.dim { fill: var(--blue-soft); opacity: .55; }
+.hbar.on { fill: var(--ink); }
+.axis { font: 500 10.5px var(--f-mono); fill: var(--ink-3); }
+.grid { stroke: var(--rule); stroke-width: 1; }
+.note { font-size: 12.5px; color: var(--ink-3); margin: 0; }
+
+/* Off-map + event list */
+.offmap { display: grid; gap: 6px; }
+.row { display: grid; grid-template-columns: 1fr auto; gap: 10px; font-size: 13.5px; align-items: baseline; }
+.row .v { font: 500 13px var(--f-mono); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.bar { height: 4px; border-radius: 2px; background: var(--blue); grid-column: 1 / -1; opacity: .8; }
+.list { display: grid; gap: 0; max-height: 360px; overflow-y: auto; border-top: 1px solid var(--rule); }
+.ev { display: grid; grid-template-columns: 74px 1fr; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--rule); font-size: 13.5px; }
+.ev time { font: 500 12px/1.5 var(--f-mono); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.ev a { text-decoration: none; font-weight: 500; }
+.ev a:hover { text-decoration: underline; }
+.ev .host { color: var(--ink-3); font-size: 12.5px; }
+.pill { font: 500 10.5px/1 var(--f-mono); text-transform: uppercase; letter-spacing: .04em; border: 1px solid var(--rule); border-radius: 999px; padding: 3px 6px; margin-left: 6px; color: var(--ink-2); white-space: nowrap; }
+
+/* Heatmap */
+.heat { padding: 18px; display: grid; gap: 14px; }
+.heat h2 { font: 800 26px/1.1 var(--f-display); font-stretch: 80%; margin: 0; }
+.heat p { margin: 0; color: var(--ink-2); max-width: 70ch; }
+.tblwrap { overflow-x: auto; }
+table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric: tabular-nums; min-width: 760px; }
+.hm th { font: 500 12px/1.2 var(--f-body); color: var(--ink-2); padding: 4px 6px; text-align: left; white-space: nowrap; }
+.hm thead th { text-align: center; vertical-align: bottom; font-size: 11.5px; }
+.hm tbody th { cursor: pointer; }
+.hm tbody th:hover { color: var(--ink); text-decoration: underline; }
+.hm tr.cur th { color: var(--ink); font-weight: 700; }
+.hm td { width: 58px; height: 34px; text-align: center; font: 500 12px var(--f-mono); border-radius: 4px; position: relative; }
+.hm td.sig { outline: 2.5px solid var(--ink); outline-offset: -2.5px; font-weight: 700; }
+.hm td.near { outline: 1.5px dashed var(--ink-2); outline-offset: -2px; }
+.hm td.low { color: var(--ink-3); }
+
+footer { color: var(--ink-3); font-size: 12.5px; display: grid; gap: 6px; max-width: 90ch; }
+footer p { margin: 0; }
+
+.tip {
+  position: fixed; z-index: 10; pointer-events: none; background: var(--panel); color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 8px; box-shadow: var(--shadow); padding: 9px 11px;
+  font-size: 13px; line-height: 1.45; max-width: 260px;
+}
+.tip b { font-weight: 700; }
+.tip .m { font: 500 12px var(--f-mono); color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) { .bubble { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">San Francisco · 2026-10-05 → 10-11 · a16z Tech Week</div>
+    <h1>1,710 场活动 <span class="zh">都在旧金山哪里？</span></h1>
+    <p class="lede">官网日历里一整周的活动（2026-09-23 抓取），按主办方填写的街区画在地图上。选一个领域，就能看它在哪些街区偏多（红）、偏少（蓝）；按下“播放”，看一天里活动怎么集中到傍晚。</p>
+    <div class="facts">
+      <div class="fact"><b>50.4%</b><span>集中在 SOMA、FiDi、Downtown 三个相邻街区</span></div>
+      <div class="fact"><b>2 / 168</b><span>个“街区 × 领域”组合是统计上显著的聚集，同类活动基本不扎堆</span></div>
+      <div class="fact"><b>40.1%</b><span>的活动在 17:00–18:59 开始，时间比地点更集中</span></div>
+    </div>
+  </header>
+
+  <section class="main">
+    <div class="card mapcard">
+      <div class="mapbar">
+        <div class="mapstatus" id="status" aria-live="polite"></div>
+        <div class="seg" role="group" aria-label="地图范围">
+          <button type="button" id="z-city" aria-pressed="true">全城</button>
+          <button type="button" id="z-core" aria-pressed="false">市中心</button>
+        </div>
+      </div>
+      <svg class="map" id="map" role="img" aria-label="旧金山各街区活动数量气泡图"></svg>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <aside class="side">
+      <div class="card panel">
+        <h2>领域</h2>
+        <div class="chips" id="domains" role="group" aria-label="选择领域"></div>
+      </div>
+      <div class="card panel">
+        <h2>日期</h2>
+        <div class="days"><div class="seg" id="days" role="group" aria-label="选择日期"></div></div>
+        <div class="hourhead">
+          <h2 id="hourtitle">开始时间 · 全天</h2>
+          <div style="display:flex;gap:6px">
+            <button type="button" class="btn ghost" id="allday">全天</button>
+            <button type="button" class="btn" id="play">▶ 播放一天</button>
+          </div>
+        </div>
+        <svg class="hours" id="hours" viewBox="0 0 360 150" role="img" aria-label="各小时开始的活动数量"></svg>
+        <p class="note">点一根柱子只看那一小时开始的活动；4 场 0–6 点开始的活动时间可疑，不计入。</p>
+      </div>
+      <div class="card panel">
+        <h2>地图之外</h2>
+        <div class="offmap" id="offmap"></div>
+      </div>
+      <div class="card panel" id="detail" hidden>
+        <h2 id="detailtitle"></h2>
+        <div class="list" id="evlist"></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="card heat" aria-labelledby="heat-h">
+    <h2 id="heat-h">哪个领域偏爱哪个街区？</h2>
+    <p>Lift = 该领域在这个街区的占比 ÷ 在全城的占比；1.00 表示和全城一样。只列出全周 ≥ 25 场活动的 12 个街区。粗框是经多重检验校正后仍显著（q &lt; 0.05）的聚集，虚线框是接近显著（q &lt; 0.10）。点领域名可以在地图上查看。</p>
+    <div class="tblwrap"><table class="hm" id="heat"></table></div>
+    <div class="legend" style="border:0;padding:0" id="heatlegend"></div>
+  </section>
+
+  <footer>
+    <p>数据：tech-week.com 官方日历（city = sf），2026-09-23 抓取；去重后 1,710 场。街区和主题标签均由主办方填写。领域由 23 个官方主题 / 专题合并而成，一场活动可以属于多个领域。</p>
+    <p>地图底图：DataSF Analysis Neighborhoods。气泡位置是街区的大致中心，不代表具体场地地址。显著性用超几何检验 + Benjamini-Hochberg 校正。</p>
+  </footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script src="data.js"></script>
+<script>
+(() => {
+  const TW = window.TW;
+  const DOMAIN_ZH = {
+    "AI Agents & DevTools": "AI Agent 与开发工具", "AI Infra & Compute": "AI 基础设施与算力",
+    "Deep Tech & Hardware": "深科技与硬件", "Bio & Health": "生物与健康", "Fintech & Crypto": "金融科技与加密",
+    "GTM & Sales": "GTM 与销售", "Fundraising & Investing": "融资与投资", "Creator, Media & Consumer": "创作者、媒体与消费",
+    "Enterprise & SaaS": "企业服务与 SaaS", "Global Founders": "出海与国际创始人", "Cybersecurity": "网络安全",
+    "Climate": "气候", "People & Hiring": "人才与招聘", "Women-focused": "女性主题",
+  };
+  const DAY_ZH = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
+  const DAY_DATE = ["10/5", "10/6", "10/7", "10/8", "10/9", "10/10", "10/11"];
+  const STATUS_ZH = { waitlist: "候补", closed: "已关闭", sold_out: "已满", unknown: "状态未知" };
+  const H0 = 6, H1 = 22;
+  const MIN_N_FOR_LIFT = 8;
+
+  const state = { domain: -1, day: -1, hour: null, hood: null, zoom: "city", playing: null };
+  const hoods = TW.hoods;
+  const ev = TW.events;
+  const OFF_REGIONS = ["Peninsula & South Bay", "East Bay", "Virtual", "Unknown"];
+  const REGION_ZH = { "Peninsula & South Bay": "半岛与南湾", "East Bay": "East Bay", "Virtual": "线上", "Unknown": "地点不明" };
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}, parent) => {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  };
+  const fmt = (n) => n.toLocaleString("en-US");
+
+  // ---------- filtering ----------
+  const passes = (e, { useHour = true, useDomain = true } = {}) =>
+    (state.day < 0 || e[1] === state.day) &&
+    (!useHour || state.hour === null || e[2] === state.hour) &&
+    (!useDomain || state.domain < 0 || (e[3] >> state.domain) & 1);
+
+  function hoodStats() {
+    const n = new Array(hoods.length).fill(0), k = new Array(hoods.length).fill(0);
+    let N = 0, K = 0;
+    for (const e of ev) {
+      if (!passes(e, { useDomain: false })) continue;
+      const phys = hoods[e[0]].region !== "Virtual" && hoods[e[0]].region !== "Unknown";
+      n[e[0]]++;
+      const hit = state.domain >= 0 && ((e[3] >> state.domain) & 1);
+      if (hit) k[e[0]]++;
+      if (phys) { N++; if (hit) K++; }
+    }
+    return { n, k, N, K };
+  }
+
+  // ---------- map ----------
+  const svg = document.getElementById("map");
+  const [W] = TW.size;
+  const VIEW = { city: [0, 60, 1000, 760], core: [470, 185, 470, 357] };
+  el("rect", { x: -500, y: -500, width: 2000, height: 2000, fill: "var(--water)" }, svg);
+  const landG = el("g", {}, svg);
+  for (const s of TW.shapes) el("path", { d: s.d, class: "land" }, landG).appendChild(el("title")).textContent = s.name;
+  const ringG = el("g", {}, svg), bubG = el("g", {}, svg), lblG = el("g", {}, svg);
+  const onMap = hoods.map((h, i) => (h.xy ? i : -1)).filter((i) => i >= 0);
+  const bub = {};
+  for (const i of onMap) {
+    const c = el("circle", { cx: hoods[i].xy[0], cy: hoods[i].xy[1], r: 0, class: "bubble", tabindex: 0, role: "button" }, bubG);
+    c.addEventListener("pointermove", (evt) => showTip(evt, i));
+    c.addEventListener("pointerleave", hideTip);
+    c.addEventListener("click", () => selectHood(i));
+    c.addEventListener("keydown", (evt) => { if (evt.key === "Enter" || evt.key === " ") { evt.preventDefault(); selectHood(i); } });
+    bub[i] = c;
+  }
+  const sigByHood = {};
+  for (const L of TW.lift) if (L.sig) (sigByHood[L.hood] ||= []).push(L.domain);
+
+  let viewBox = VIEW.city.slice();
+  svg.setAttribute("viewBox", viewBox.join(" "));
+  function setZoom(z) {
+    state.zoom = z;
+    document.getElementById("z-city").setAttribute("aria-pressed", z === "city");
+    document.getElementById("z-core").setAttribute("aria-pressed", z === "core");
+    const from = viewBox.slice(), to = VIEW[z];
+    if (reduced) { viewBox = to.slice(); svg.setAttribute("viewBox", viewBox.join(" ")); drawMap(); return; }
+    const t0 = performance.now(), dur = 550;
+    const step = (t) => {
+      const p = Math.min(1, (t - t0) / dur), ease = 1 - Math.pow(1 - p, 3);
+      viewBox = from.map((v, j) => v + (to[j] - v) * ease);
+      svg.setAttribute("viewBox", viewBox.join(" "));
+      drawMap(true);
+      if (p < 1) requestAnimationFrame(step); else drawMap();
+    };
+    requestAnimationFrame(step);
+  }
+  document.getElementById("z-city").onclick = () => setZoom("city");
+  document.getElementById("z-core").onclick = () => setZoom("core");
+
+  function liftColor(l) {
+    if (l === null) return css("--mid");
+    if (l >= 1.5) return css("--red");
+    if (l >= 1.15) return css("--red-soft");
+    if (l > 0.87) return css("--mid");
+    if (l > 0.67) return css("--blue-soft");
+    return css("--blue");
+  }
+
+  let lastStats = null;
+  function drawMap(fast) {
+    const st = lastStats || hoodStats();
+    const zoomK = viewBox[2] / 1000 * (state.zoom === "core" ? 1.45 : 1);
+    const base = 1.9 * zoomK;
+    lblG.textContent = "";
+    ringG.textContent = "";
+    const showSig = state.domain >= 0 && state.day < 0 && state.hour === null;
+    // Labels are sized in screen pixels (viewBox units per rendered px), so they stay readable on phones.
+    const pxK = viewBox[2] / (svg.clientWidth || 1000);
+    const narrow = svg.clientWidth < 500;
+    const labelled = onMap.filter((i) => st.n[i] > 0).sort((a, b) => st.n[b] - st.n[a])
+      .slice(0, state.zoom === "core" ? (narrow ? 7 : 12) : (narrow ? 4 : 7));
+    for (const i of onMap) {
+      const n = state.domain >= 0 ? st.k[i] : st.n[i];
+      const r = n ? Math.max(2.2 * zoomK, base * Math.sqrt(n)) : 0;
+      const c = bub[i];
+      if (fast) c.style.transition = "none"; else c.style.transition = "";
+      c.setAttribute("r", r.toFixed(2));
+      let fill = css("--blue"), faint = false;
+      if (state.domain >= 0) {
+        const lift = st.n[i] >= MIN_N_FOR_LIFT && st.N && st.K ? (st.k[i] / st.n[i]) / (st.K / st.N) : null;
+        fill = liftColor(lift);
+        faint = lift === null;
+      }
+      c.setAttribute("fill", fill);
+      c.setAttribute("fill-opacity", state.domain >= 0 ? (faint ? .55 : .95) : .78);
+      c.classList.toggle("sel", state.hood === i);
+      c.setAttribute("aria-label", `${hoods[i].name}：${n} 场`);
+      c.style.display = n ? "" : "none";
+      if (showSig && sigByHood[hoods[i].name]?.includes(TW.domains[state.domain])) {
+        el("circle", { cx: hoods[i].xy[0], cy: hoods[i].xy[1], r: (r + 6 * zoomK).toFixed(2), class: "ring" }, ringG);
+      }
+    }
+    const fs = 12 * pxK, fsn = 11 * pxK;
+    const cnt = (i) => (state.domain >= 0 ? st.k[i] : st.n[i]);
+    // Obstacles: the labelled bubbles themselves, then each label as it is placed (largest first).
+    const boxes = labelled.filter(cnt).map((i) => {
+      const r = base * Math.sqrt(cnt(i)), [x, y] = hoods[i].xy;
+      return { x: x - r, y: y - r, width: 2 * r, height: 2 * r, own: i };
+    });
+    const hits = (b, own) => boxes.some((o) => o.own !== own &&
+      b.x < o.x + o.width && o.x < b.x + b.width && b.y < o.y + o.height && o.y < b.y + b.height);
+    for (const i of labelled) {
+      const n = cnt(i);
+      if (!n) continue;
+      const r = base * Math.sqrt(n);
+      const [x, y] = hoods[i].xy;
+      // Inline style, not the font-size attribute: the .lbl CSS shorthand would override the attribute.
+      const t = el("text", { x: x + r + 3 * pxK, y: y + fs * 0.35, class: "lbl", style: `font-size:${fs.toFixed(2)}px;stroke-width:${(3.5 * pxK).toFixed(2)}px` }, lblG);
+      t.textContent = hoods[i].name + " ";
+      const s = el("tspan", { class: "n", style: `font-size:${fsn.toFixed(2)}px` }, t);
+      s.textContent = n;
+      // Try the right side, then the left side; drop the label if both collide.
+      let b = t.getBBox();
+      if (hits(b, i)) {
+        t.setAttribute("text-anchor", "end");
+        t.setAttribute("x", x - r - 3 * pxK);
+        b = t.getBBox();
+        if (hits(b, i)) { t.remove(); continue; }
+      }
+      boxes.push({ x: b.x, y: b.y, width: b.width, height: b.height, own: -1 });
+    }
+  }
+
+  // ---------- tooltip ----------
+  const tip = document.getElementById("tip");
+  function showTip(evt, i) {
+    const st = lastStats;
+    const n = st.n[i];
+    let html = `<b>${hoods[i].name}</b><div class="m">${fmt(n)} 场${scopeText()}</div>`;
+    if (state.domain >= 0) {
+      const k = st.k[i];
+      const lift = n >= MIN_N_FOR_LIFT && st.K ? ((k / n) / (st.K / st.N)) : null;
+      html += `<div>${DOMAIN_ZH[TW.domains[state.domain]]}：${k} 场（${n ? (k / n * 100).toFixed(1) : 0}%）</div>`;
+      html += `<div class="m">全城占比 ${(st.K / st.N * 100).toFixed(1)}% · lift ${lift === null ? "样本太少" : lift.toFixed(2)}</div>`;
+      const sig = sigByHood[hoods[i].name];
+      if (sig?.includes(TW.domains[state.domain])) html += `<div><b>全周显著聚集</b></div>`;
+    }
+    html += `<div class="m">点击查看活动列表</div>`;
+    tip.innerHTML = html;
+    tip.hidden = false;
+    const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = evt.clientX + pad, y = evt.clientY + pad;
+    if (x + w > innerWidth - 8) x = evt.clientX - w - pad;
+    if (y + h > innerHeight - 8) y = evt.clientY - h - pad;
+    tip.style.left = x + "px";
+    tip.style.top = y + "px";
+  }
+  function hideTip() { tip.hidden = true; }
+  function scopeText() {
+    const parts = [];
+    if (state.day >= 0) parts.push(DAY_ZH[state.day]);
+    if (state.hour !== null) parts.push(`${state.hour}:00 开始`);
+    return parts.length ? " · " + parts.join(" · ") : " · 全周";
+  }
+
+  // ---------- controls ----------
+  const domBox = document.getElementById("domains");
+  const domCounts = TW.domains.map((_, d) => ev.filter((e) => (e[3] >> d) & 1).length);
+  const chips = [];
+  const addChip = (label, count, d) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.dataset.d = d;
+    b.innerHTML = `${label}<small>${fmt(count)}</small>`;
+    b.onclick = () => { state.domain = d; state.hood = null; render(); };
+    domBox.appendChild(b); chips.push(b);
+  };
+  addChip("全部", ev.length, -1);
+  TW.domains.map((d, i) => [d, i]).sort((a, b) => domCounts[b[1]] - domCounts[a[1]])
+    .forEach(([d, i]) => addChip(DOMAIN_ZH[d], domCounts[i], i));
+
+  const dayBox = document.getElementById("days");
+  const dayBtns = [];
+  [["全周", -1], ...DAY_ZH.map((d, i) => [d, i])].forEach(([label, i]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = label;
+    if (i >= 0) b.title = DAY_DATE[i];
+    b.onclick = () => { state.day = i; render(); };
+    dayBox.appendChild(b); dayBtns.push([b, i]);
+  });
+
+  document.getElementById("allday").onclick = () => { stopPlay(); state.hour = null; render(); };
+  const playBtn = document.getElementById("play");
+  function stopPlay() {
+    if (state.playing) { clearInterval(state.playing); state.playing = null; playBtn.textContent = "▶ 播放一天"; }
+  }
+  playBtn.onclick = () => {
+    if (state.playing) { stopPlay(); return; }
+    state.hour = state.hour === null || state.hour >= H1 ? H0 : state.hour;
+    playBtn.textContent = "❚❚ 暂停";
+    render();
+    state.playing = setInterval(() => {
+      if (state.hour >= H1) { stopPlay(); return; }
+      state.hour++; render();
+    }, reduced ? 1400 : 800);
+  };
+
+  // ---------- hour chart ----------
+  const hs = document.getElementById("hours");
+  function drawHours() {
+    hs.textContent = "";
+    const counts = [];
+    for (let h = H0; h <= H1; h++) counts.push(0);
+    for (const e of ev) {
+      if (e[2] < H0 || e[2] > H1) continue;
+      if (!passes(e, { useHour: false })) continue;
+      if (state.hood !== null && e[0] !== state.hood) continue;
+      counts[e[2] - H0]++;
+    }
+    const max = Math.max(1, ...counts);
+    const nice = max <= 10 ? 10 : max <= 50 ? Math.ceil(max / 10) * 10 : Math.ceil(max / 50) * 50;
+    const x0 = 30, x1 = 356, y0 = 124, y1 = 10;
+    const bw = (x1 - x0) / counts.length;
+    [0, nice / 2, nice].forEach((v) => {
+      const y = y0 - (v / nice) * (y0 - y1);
+      el("line", { x1: x0, x2: x1, y1: y, y2: y, class: "grid" }, hs);
+      el("text", { x: x0 - 5, y: y + 3.5, "text-anchor": "end", class: "axis" }, hs).textContent = v;
+    });
+    counts.forEach((c, j) => {
+      const h = H0 + j;
+      const bh = (c / nice) * (y0 - y1);
+      const r = el("rect", {
+        x: (x0 + j * bw + 1.5).toFixed(1), y: (y0 - bh).toFixed(1), width: (bw - 3).toFixed(1), height: Math.max(0, bh).toFixed(1), rx: 2,
+        class: "hbar" + (state.hour === null ? "" : state.hour === h ? " on" : " dim"), tabindex: 0, role: "button",
+        "aria-label": `${h}:00 开始 ${c} 场`,
+      }, hs);
+      const hit = el("rect", { x: x0 + j * bw, y: y1, width: bw, height: y0 - y1, fill: "transparent", style: "cursor:pointer" }, hs);
+      const pick = () => { stopPlay(); state.hour = state.hour === h ? null : h; render(); };
+      [r, hit].forEach((n) => {
+        n.addEventListener("click", pick);
+        n.addEventListener("pointermove", (evt) => {
+          tip.innerHTML = `<b>${h}:00–${h}:59 开始</b><div class="m">${fmt(c)} 场</div>`;
+          tip.hidden = false; tip.style.left = evt.clientX + 12 + "px"; tip.style.top = evt.clientY - 40 + "px";
+        });
+        n.addEventListener("pointerleave", hideTip);
+      });
+      r.addEventListener("keydown", (evt) => { if (evt.key === "Enter" || evt.key === " ") { evt.preventDefault(); pick(); } });
+      if (h % 3 === 0) el("text", { x: x0 + j * bw + bw / 2, y: y0 + 14, "text-anchor": "middle", class: "axis" }, hs).textContent = h;
+    });
+    el("line", { x1: x0, x2: x1, y1: y0, y2: y0, stroke: "var(--ink-3)", "stroke-width": 1 }, hs);
+    const t = document.getElementById("hourtitle");
+    t.textContent = "开始时间 · " + (state.hour === null ? "全天" : `${state.hour}:00–${state.hour}:59`) +
+      (state.hood !== null ? ` · ${hoods[state.hood].name}` : "");
+  }
+
+  // ---------- off-map ----------
+  function drawOffmap() {
+    const box = document.getElementById("offmap");
+    box.textContent = "";
+    const counts = {};
+    for (const e of ev) if (passes(e)) {
+      const r = hoods[e[0]].region;
+      if (OFF_REGIONS.includes(r)) (counts[r] ||= {})[hoods[e[0]].name] = ((counts[r] || {})[hoods[e[0]].name] || 0) + 1;
+    }
+    const max = Math.max(1, ...OFF_REGIONS.map((r) => Object.values(counts[r] || {}).reduce((a, b) => a + b, 0)));
+    for (const r of OFF_REGIONS) {
+      const parts = Object.entries(counts[r] || {}).sort((a, b) => b[1] - a[1]);
+      const total = parts.reduce((a, b) => a + b[1], 0);
+      const row = document.createElement("div");
+      row.className = "row";
+      const detail = r === "Peninsula & South Bay" || r === "Unknown" ? parts.map(([n, c]) => `${n === "Other" ? "Other" : n} ${c}`).join(" · ") : "";
+      row.innerHTML = `<span>${REGION_ZH[r]}${detail ? `<span class="note" style="display:block">${detail}</span>` : ""}</span><span class="v">${total}</span><span class="bar" style="width:${(total / max * 100).toFixed(1)}%"></span>`;
+      box.appendChild(row);
+    }
+  }
+
+  // ---------- detail list ----------
+  function selectHood(i) {
+    state.hood = state.hood === i ? null : i;
+    render();
+    // One-column layout puts the list far below the map; bring it into view.
+    if (state.hood !== null && matchMedia("(max-width: 900px)").matches) {
+      document.getElementById("detail").scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    }
+  }
+  function drawDetail() {
+    const box = document.getElementById("detail");
+    if (state.hood === null) { box.hidden = true; return; }
+    const list = ev.filter((e) => e[0] === state.hood && passes(e))
+      .sort((a, b) => a[1] - b[1] || a[6].localeCompare(b[6]));
+    box.hidden = false;
+    document.getElementById("detailtitle").textContent =
+      `${hoods[state.hood].name} · ${list.length} 场` + (state.domain >= 0 ? ` · ${DOMAIN_ZH[TW.domains[state.domain]]}` : "");
+    const ul = document.getElementById("evlist");
+    ul.textContent = "";
+    for (const e of list.slice(0, 80)) {
+      const d = document.createElement("div");
+      d.className = "ev";
+      const pill = STATUS_ZH[e[7]] ? `<span class="pill">${STATUS_ZH[e[7]]}</span>` : "";
+      const safe = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+      d.innerHTML = `<time>${DAY_ZH[e[1]]} ${e[6]}</time><div><a href="${safe(e[8])}" target="_blank" rel="noopener">${safe(e[4])}</a>${pill}<div class="host">${safe(e[5])}</div></div>`;
+      ul.appendChild(d);
+    }
+    if (list.length > 80) {
+      const m = document.createElement("p"); m.className = "note"; m.style.padding = "8px 0";
+      m.textContent = `只显示前 80 场；用日期或时间筛选可以缩小范围。`;
+      ul.appendChild(m);
+    }
+  }
+
+  // ---------- heatmap ----------
+  function drawHeat() {
+    const tbl = document.getElementById("heat");
+    const hoodsH = [...new Set(TW.lift.map((l) => l.hood))];
+    const byKey = {};
+    TW.lift.forEach((l) => (byKey[l.hood + "|" + l.domain] = l));
+    hoodsH.sort((a, b) => byKey[b + "|" + TW.domains[0]].n - byKey[a + "|" + TW.domains[0]].n);
+    let html = "<thead><tr><th></th>" + hoodsH.map((h) => `<th scope="col">${h}<div class="axis" style="font-size:10.5px">${byKey[h + "|" + TW.domains[0]].n}</div></th>`).join("") + "</tr></thead><tbody>";
+    const order = TW.domains.map((d, i) => i).sort((a, b) => domCounts[b] - domCounts[a]);
+    for (const di of order) {
+      const d = TW.domains[di];
+      html += `<tr class="${state.domain === di ? "cur" : ""}"><th scope="row" data-d="${di}" tabindex="0">${DOMAIN_ZH[d]}</th>`;
+      for (const h of hoodsH) {
+        const l = byKey[h + "|" + d];
+        const cls = [l.sig ? "sig" : (l.q < 0.10 && l.lift > 1 && l.k >= 5 ? "near" : ""), l.k < 5 ? "low" : ""].join(" ");
+        const bg = l.k < 5 ? "transparent" : liftColor(l.lift);
+        const strong = l.k >= 5 && (l.lift >= 1.5 || l.lift <= 0.67);
+        const col = strong ? "#fff" : "var(--ink)";
+        html += `<td class="${cls}" style="background:${bg};color:${l.k < 5 ? "" : col}" title="${h} · ${DOMAIN_ZH[d]}：${l.k}/${l.n} 场，lift ${l.lift.toFixed(2)}，q ${l.q}">${l.k < 5 ? "·" : l.lift.toFixed(2)}</td>`;
+      }
+      html += "</tr>";
+    }
+    tbl.innerHTML = html + "</tbody>";
+    tbl.querySelectorAll("tbody th").forEach((th) => {
+      const go = () => { state.domain = +th.dataset.d; state.hood = null; render(); document.getElementById("map").scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" }); };
+      th.onclick = go;
+      th.onkeydown = (e) => { if (e.key === "Enter") go(); };
+    });
+  }
+
+  function drawLegend() {
+    const lg = document.getElementById("legend");
+    const ramp = [css("--blue"), css("--blue-soft"), css("--mid"), css("--red-soft"), css("--red")]
+      .map((c) => `<i style="background:${c}"></i>`).join("");
+    if (state.domain < 0) {
+      lg.innerHTML = `<span><span class="sw" style="background:var(--blue)"></span>气泡大小 = 活动场数</span><span>选一个领域，颜色会显示它在各街区是偏多还是偏少</span>`;
+    } else {
+      lg.innerHTML = `<span>气泡大小 = 该领域场数</span><span>偏少<span class="ramp">${ramp}</span>偏多（lift）</span>` +
+        `<span><span class="sw" style="background:var(--mid);opacity:.55"></span>街区样本 &lt; ${MIN_N_FOR_LIFT} 场</span>` +
+        (state.day < 0 && state.hour === null ? `<span><span class="dash"></span>全周显著聚集</span>` : "");
+    }
+    document.getElementById("heatlegend").innerHTML =
+      `<span>偏少<span class="ramp">${ramp}</span>偏多</span><span>“·” = 该格少于 5 场，不着色</span>`;
+  }
+
+  function drawStatus() {
+    const n = ev.filter((e) => passes(e)).length;
+    const parts = [state.domain >= 0 ? DOMAIN_ZH[TW.domains[state.domain]] : "全部领域",
+      state.day >= 0 ? `${DAY_ZH[state.day]} ${DAY_DATE[state.day]}` : "全周",
+      state.hour === null ? "全天" : `${state.hour}:00 开始`];
+    document.getElementById("status").innerHTML = `<b>${fmt(n)}</b> 场 · ${parts.join(" · ")}`;
+  }
+
+  function render() {
+    chips.forEach((b) => b.setAttribute("aria-pressed", +b.dataset.d === state.domain));
+    dayBtns.forEach(([b, i]) => b.setAttribute("aria-pressed", i === state.day));
+    lastStats = hoodStats();
+    drawMap(); drawHours(); drawOffmap(); drawDetail(); drawHeat(); drawLegend(); drawStatus();
+  }
+  render();
+  let resizeT;
+  addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTimeout(() => drawMap(true), 120); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+  new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+})();
+</script>
