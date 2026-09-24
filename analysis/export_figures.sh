@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Export EP1 figures (web/figures.html) to analysis/figures/*.png with headless Chrome.
+# Export visualization figures (web/figures.html) to analysis/figures/*.png with headless Chrome.
 #   zsh analysis/export_figures.sh            # serves web/ on 127.0.0.1:8766 if nothing is there yet
 set -euo pipefail
 HERE=${0:A:h}

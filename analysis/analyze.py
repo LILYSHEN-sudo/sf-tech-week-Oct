@@ -1,7 +1,7 @@
 """Clean SF Tech Week 2026 events and compute neighborhood / domain / hour stats.
 
-Input : ../data/sf-tech-week-2026-events.csv  (run ../data/infer_audience.py first)
-Output: ../data/sf-tech-week-2026-events-clean.csv
+Input : ../data/source-data/sf-tech-week-2026-events.csv  (run ../data/scripts/infer_audience.py first)
+Output: ../data/data-clean/sf-tech-week-2026-events-clean.csv
         ./out/*.csv  (tables used by docs/2-analysis.md and the map)
 
     python3 analyze.py
@@ -15,8 +15,11 @@ from scipy.stats import hypergeom
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "..", "data")
+SOURCE_DATA = os.path.join(DATA, "source-data")
+CLEAN_DATA = os.path.join(DATA, "data-clean")
 OUT = os.path.join(HERE, "out")
 os.makedirs(OUT, exist_ok=True)
+os.makedirs(CLEAN_DATA, exist_ok=True)
 
 WEEK = ("2026-10-05", "2026-10-11")
 MIN_HOOD_EVENTS = 25   # neighborhoods smaller than this are too noisy for lift
@@ -35,7 +38,7 @@ REGION = {
     "Unknown": "Unknown",
 }
 
-# Official themes / tracks grouped into video-friendly domains (multi-label).
+# Official themes / tracks grouped into project domains (multi-label).
 # "AI" is on ~70% of events, so it is not a domain on its own.
 DOMAINS = {
     "AI Agents & DevTools": ({"Engineering"}, {"AI Agents", "Developer Tools"}),
@@ -68,7 +71,7 @@ def clean_name(name):
 
 
 def load_and_clean():
-    df = pd.read_csv(os.path.join(DATA, "sf-tech-week-2026-events.csv"), dtype=str, keep_default_na=False)
+    df = pd.read_csv(os.path.join(SOURCE_DATA, "sf-tech-week-2026-events.csv"), dtype=str, keep_default_na=False)
     df["name"] = df["name"].map(clean_name)
     df["neighborhood_clean"] = (
         df["neighborhood"].str.replace(r"\s*\(SF\)$", "", regex=True).replace("", "Unknown")
@@ -135,7 +138,7 @@ def lift_table(physical, big, groups, label):
 def main():
     df = load_and_clean()
     export_cols = [c for c in df.columns if c not in DOMAINS]
-    df[export_cols].to_csv(os.path.join(DATA, "sf-tech-week-2026-events-clean.csv"), index=False)
+    df[export_cols].to_csv(os.path.join(CLEAN_DATA, "sf-tech-week-2026-events-clean.csv"), index=False)
 
     base = df[df["in_week"] & ~df["is_duplicate"]]
     physical = base[~base["region"].isin(["Virtual", "Unknown"])]

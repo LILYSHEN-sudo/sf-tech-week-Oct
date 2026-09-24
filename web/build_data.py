@@ -1,7 +1,7 @@
 """Build web/data.js for the map page.
 
-Inputs : ../data/sf-tech-week-2026-events-clean.csv   (from analysis/analyze.py)
-         ../data/sf-analysis-neighborhoods.geojson     (DataSF "Analysis Neighborhoods")
+Inputs : ../data/data-clean/sf-tech-week-2026-events-clean.csv   (from analysis/analyze.py)
+         ../data/source-data/sf-analysis-neighborhoods.geojson     (DataSF "Analysis Neighborhoods")
          ../analysis/out/03_neighborhood_domain_lift.csv
 Output : ./data.js  (window.TW = {...})
 
@@ -14,6 +14,8 @@ import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "..", "data")
+SOURCE_DATA = os.path.join(DATA, "source-data")
+CLEAN_DATA = os.path.join(DATA, "data-clean")
 OUT_DIR = os.path.join(HERE, "..", "analysis", "out")
 
 # Projection: equirectangular with cos(lat) correction, 1000 px wide.
@@ -55,6 +57,11 @@ DOMAINS = [
     "GTM & Sales", "Fundraising & Investing", "Creator, Media & Consumer", "Enterprise & SaaS", "Global Founders",
     "Cybersecurity", "Climate", "People & Hiring", "Women-focused",
 ]
+INTENTS = [
+    "raise-funding", "find-customers", "learn-build", "hire-or-find-work",
+    "meet-peers", "explore-ai", "creator-collaboration",
+]
+AUDIENCES = ["founders", "investors", "engineers", "marketing-comms", "sales-bd", "creators"]
 DAYS = ["2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09", "2026-10-10", "2026-10-11"]
 
 
@@ -85,7 +92,7 @@ def ring_path(ring):
 
 
 def build_shapes():
-    gj = json.load(open(os.path.join(DATA, "sf-analysis-neighborhoods.geojson")))
+    gj = json.load(open(os.path.join(SOURCE_DATA, "sf-analysis-neighborhoods.geojson")))
     shapes = []
     for f in gj["features"]:
         geom = f["geometry"]
@@ -97,7 +104,7 @@ def build_shapes():
 
 
 def main():
-    rows = list(csv.DictReader(open(os.path.join(DATA, "sf-tech-week-2026-events-clean.csv"), encoding="utf-8")))
+    rows = list(csv.DictReader(open(os.path.join(CLEAN_DATA, "sf-tech-week-2026-events-clean.csv"), encoding="utf-8")))
     rows = [r for r in rows if r["in_week"] == "True" and r["is_duplicate"] == "False"]
 
     hoods = sorted({r["neighborhood_clean"] for r in rows})
@@ -121,6 +128,13 @@ def main():
                 theme_n[t.strip()] = theme_n.get(t.strip(), 0) + 1
     themes = sorted(theme_n, key=lambda t: (-theme_n[t], t))
 
+    format_n = {}
+    for r in rows:
+        for f in r["formats"].split(";"):
+            if f.strip():
+                format_n[f.strip()] = format_n.get(f.strip(), 0) + 1
+    formats = sorted(format_n, key=lambda f: (-format_n[f], f))
+
     events = []
     for r in rows:
         doms = set(d.strip() for d in r["domains"].split(";") if d.strip())
@@ -128,9 +142,17 @@ def main():
         hour = -1 if r["time_suspect"] == "True" else int(r["hour"])
         ths = set(t.strip() for t in r["themes"].split(";") if t.strip())
         tmask = sum(1 << i for i, t in enumerate(themes) if t in ths)
-        # compact row: [hood, day, hour, domainMask, name, host, time, status, url, themeMask]
+        fs = set(f.strip() for f in r["formats"].split(";") if f.strip())
+        fmask = sum(1 << i for i, f in enumerate(formats) if f in fs)
+        intents = set(i.strip() for i in r["intent_inferred"].split(";") if i.strip() and i.strip() != "general")
+        imask = sum(1 << i for i, intent in enumerate(INTENTS) if intent in intents)
+        audiences = set(a.strip() for a in r["audience_inferred"].split(";") if a.strip() and a.strip() != "general")
+        amask = sum(1 << i for i, audience in enumerate(AUDIENCES) if audience in audiences)
+        # compact row: [hood, day, hour, domainMask, name, host, time, status, url,
+        #               themeMask, formatMask, intentMask, audienceMask]
         events.append([hidx[r["neighborhood_clean"]], DAYS.index(r["date"]), hour, mask,
-                       r["name"], r["primary_host"], r["time"], r["registration_status"], r["event_url"], tmask])
+                       r["name"], r["primary_host"], r["time"], r["registration_status"], r["event_url"],
+                       tmask, fmask, imask, amask])
 
     lift = []
     for r in csv.DictReader(open(os.path.join(OUT_DIR, "03_neighborhood_domain_lift.csv"), encoding="utf-8")):
@@ -138,14 +160,9 @@ def main():
                      "n": int(r["hood_events"]), "lift": float(r["lift"]), "q": float(r["q_over"]),
                      "sig": r["significant_cluster"] == "True"})
 
-    theme_lift = []
-    for r in csv.DictReader(open(os.path.join(OUT_DIR, "03c_neighborhood_theme_lift.csv"), encoding="utf-8")):
-        theme_lift.append({"hood": r["neighborhood"], "theme": r["theme"], "k": int(r["theme_events_in_hood"]),
-                           "n": int(r["hood_events"]), "lift": float(r["lift"]), "q": float(r["q_over"]),
-                           "sig": r["significant_cluster"] == "True"})
-
     payload = {
-        "generated": "2026-09-23", "domains": DOMAINS, "themes": themes, "themeLift": theme_lift, "days": DAYS, "hoods": hood_meta,
+        "generated": "2026-09-24", "domains": DOMAINS, "themes": themes, "formats": formats,
+        "intents": INTENTS, "audiences": AUDIENCES, "days": DAYS, "hoods": hood_meta,
         "events": events, "lift": lift, "shapes": build_shapes(), "size": [1000, round((LAT1 - LAT0) * SCALE)],
     }
     with open(os.path.join(HERE, "data.js"), "w", encoding="utf-8") as f:

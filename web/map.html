@@ -6,8 +6,8 @@
 <!--
   可缩放的街道底图版活动地图（MapLibre + OpenFreeMap，无需 key）。与 index.html 共用 data.js。
   地图标记 = 街区标签的中心点（官网没有具体地址），缩小时相邻街区自动合并。
-  左侧整合筛选、活动和分析；右下角显示所选官方主题的街区分布。
-  URL 参数：?lang=en|zh  ?theme=light|dark|auto
+  左侧整合筛选、活动和分析；地图上的数量决定标记大小和颜色。
+  URL 参数：?theme=light|dark|auto
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,19 +24,11 @@
   --rule: #e0e8e7;
   --accent: #2a78d6;
   --accent-soft: #e2eefb;
-  --bubble: #ffffff;
-  --bubble-edge: #5f9cc9;
   --st-open: #2a78d6;
   --st-wait: #eda100;
   --st-full: #eb6834;
   --st-closed: #d03b3b;
   --st-unknown: #9aa1ad;
-  /* diverging lift scale (same cut points as index.html) */
-  --lift-hi: #e34948;
-  --lift-hi-soft: #f2a3a2;
-  --lift-mid: #e6e4df;
-  --lift-lo-soft: #86b6ef;
-  --lift-lo: #2a78d6;
   --shadow: 0 1px 2px rgb(21 32 31 / 6%), 0 8px 28px rgb(21 32 31 / 10%);
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-body: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
@@ -46,30 +38,35 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --ground: #0e1116; --panel: #161b22; --panel-2: #1c222b; --ink: #eef1f6; --ink-2: #b3bac6; --ink-3: #7e8696;
-    --rule: #262d38; --accent: #5598e7; --accent-soft: #1b2d44; --bubble: #26303f; --bubble-edge: #6d8fb3;
+    --rule: #262d38; --accent: #5598e7; --accent-soft: #1b2d44;
     --st-open: #3987e5; --st-wait: #c98500; --st-full: #d95926; --st-closed: #e66767; --st-unknown: #6d7482;
-    --lift-hi: #e66767; --lift-hi-soft: #8e3a3a; --lift-mid: #383835; --lift-lo-soft: #1c5cab; --lift-lo: #3987e5;
     --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 28px rgb(0 0 0 / 35%);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --ground: #0e1116; --panel: #161b22; --panel-2: #1c222b; --ink: #eef1f6; --ink-2: #b3bac6; --ink-3: #7e8696;
-  --rule: #262d38; --accent: #5598e7; --accent-soft: #1b2d44; --bubble: #26303f; --bubble-edge: #6d8fb3;
+  --rule: #262d38; --accent: #5598e7; --accent-soft: #1b2d44;
   --st-open: #3987e5; --st-wait: #c98500; --st-full: #d95926; --st-closed: #e66767; --st-unknown: #6d7482;
-  --lift-hi: #e66767; --lift-hi-soft: #8e3a3a; --lift-mid: #383835; --lift-lo-soft: #1c5cab; --lift-lo: #3987e5;
   --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 28px rgb(0 0 0 / 35%);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--ground); color: var(--ink); font-family: var(--f-body); }
 button, input, select { font: inherit; color: inherit; }
-.app { display: grid; grid-template-columns: minmax(440px, 490px) minmax(0, 1fr); height: 100dvh; }
-#map { position: relative; min-height: 0; }
+.app { display: grid; grid-template-columns: minmax(440px, 490px) minmax(0, 1fr); gap: 12px; height: 100dvh; padding: 12px; }
+.map-column { position: relative; grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.map-toolbar { flex: none; display: grid; gap: 10px; padding: 12px 16px 14px; background: var(--panel); border: 1px solid var(--rule); border-radius: 16px; box-shadow: var(--shadow); }
+.toolbar-row { display: flex; align-items: center; gap: 10px; }
+.toolbar-label { font: 500 10.5px var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
+.map-stage { position: relative; flex: 1; min-height: 0; }
+#map { position: absolute; inset: 0; overflow: hidden; border: 1px solid var(--rule); border-radius: 16px; }
 
 /* floating info card */
 .card { position: absolute; z-index: 2; left: 14px; top: 14px; width: 340px; background: var(--panel); border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--shadow); padding: 16px 16px 14px; }
 .eyebrow { font: 500 11px/1.5 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
 h1 { font: 700 21px/1.25 var(--f-body); margin: 6px 0 12px; letter-spacing: -.01em; }
+.title-count { color: #e34948; font-size: 1.5em; line-height: 1; }
+.product-promise { margin: -4px 0 0; color: var(--ink-2); font-size: 12.5px; }
 .label { font: 500 11px var(--f-mono); letter-spacing: .06em; color: var(--ink-3); margin: 12px 0 6px; text-transform: uppercase; }
 .days { display: grid; grid-template-columns: repeat(8, 1fr); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
 .days button { border: 0; background: transparent; padding: 6px 0; font-size: 12.5px; color: var(--ink-2); cursor: pointer; line-height: 1.15; }
@@ -77,34 +74,25 @@ h1 { font: 700 21px/1.25 var(--f-body); margin: 6px 0 12px; letter-spacing: -.01
 .days button + button { border-left: 1px solid var(--rule); }
 .days button[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); font-weight: 700; }
 .days button[aria-pressed="true"] small { color: var(--ink-2); }
-select { width: 100%; padding: 7px 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--panel-2); font-size: 13.5px; }
 .check { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
 .check input { accent-color: var(--accent); width: 15px; height: 15px; margin: 0; }
-.meta { border-top: 1px solid var(--rule); margin-top: 14px; padding-top: 10px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
-.meta p { margin: 0 0 4px; }
-.fold { display: none; }
 
-.tools { position: absolute; z-index: 2; left: 14px; display: flex; align-items: center; gap: 8px; }
 .seg { display: flex; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; }
 .seg button { border: 0; background: transparent; min-width: 30px; height: 26px; padding: 0 8px; cursor: pointer; font-size: 12.5px; color: var(--ink-3); }
 .seg button + button { border-left: 1px solid var(--rule); }
 .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); font-weight: 700; }
 .basemap { font: 500 10.5px var(--f-mono); letter-spacing: .08em; color: var(--ink-3); text-transform: uppercase; }
+.map-controls { position: absolute; z-index: 3; right: 12px; bottom: 34px; display: grid; justify-items: start; gap: 6px; padding: 6px 8px; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--rule); border-radius: 9px; box-shadow: var(--shadow); }
+.map-stats { position: absolute; z-index: 3; top: 12px; right: 58px; width: min(360px, calc(100% - 76px)); padding: 14px 16px; background: color-mix(in srgb, var(--panel) 96%, transparent); border: 1px solid var(--rule); border-radius: 14px; box-shadow: var(--shadow); backdrop-filter: blur(8px); }
+.map-stats .count { margin: 0 0 10px; }
+.map-stats .offnote { margin-top: 10px; }
 
-/* lift legend on the map (only while a topic is selected) */
-.mlegend { position: absolute; z-index: 2; left: 14px; bottom: 14px; max-width: 320px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; box-shadow: var(--shadow); padding: 10px 12px; font-size: 12px; color: var(--ink-2); }
-.mlegend b { display: block; font-size: 12.5px; color: var(--ink); margin-bottom: 6px; }
-.mlegend .sw { display: flex; flex-wrap: wrap; gap: 4px 12px; }
-.mlegend .sw span { display: inline-flex; align-items: center; gap: 5px; }
-.mlegend i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; border: 1px solid rgb(0 0 0 / 12%); }
-.mlegend .ring { margin-top: 6px; }
-.mlegend .ring i { background: transparent; border: 2px solid var(--ink); }
 
 /* sidebar */
 .side { display: flex; flex-direction: column; min-height: 0; min-width: 0; background: var(--panel); border-left: 1px solid var(--rule); }
 .side-top { padding: 14px 16px 0; }
 .search { width: 100%; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 8px; background: var(--panel-2); font-size: 14px; }
-.search:focus, select:focus, button:focus-visible, .ev:focus-visible, th[tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.search:focus, button:focus-visible, .ev:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .tabs { display: flex; gap: 4px; margin-top: 12px; border-bottom: 1px solid var(--rule); }
 .tabs button { border: 0; background: none; padding: 8px 10px 9px; font-size: 13.5px; color: var(--ink-3); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .tabs button[aria-selected="true"] { color: var(--ink); font-weight: 700; border-bottom-color: var(--accent); }
@@ -125,8 +113,16 @@ select { width: 100%; padding: 7px 10px; border: 1px solid var(--rule); border-r
 .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex: none; }
 .offnote { margin-top: 10px; font-size: 12px; color: var(--ink-3); }
 .offnote button { border: 0; background: none; padding: 0; color: var(--accent); cursor: pointer; font-size: 12px; text-decoration: underline; }
+.personalize { position: relative; margin-top: 18px; padding: 14px; overflow: hidden; border: 1px solid #b8d5f5; border-radius: 12px; background: linear-gradient(145deg, var(--accent-soft), var(--panel) 72%); }
+.personalize::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--accent); }
+.profile-group + .profile-group { margin-top: 11px; }
+.profile-label { display: block; margin-bottom: 6px; font: 500 10px var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); }
+.profile-options { display: flex; flex-wrap: wrap; gap: 5px; }
+.profile-option { border: 1px solid var(--rule); border-radius: 999px; padding: 5px 9px; background: var(--panel); color: var(--ink-2); font-size: 11.5px; cursor: pointer; }
+.profile-option[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: #fff; }
+.profile-limit { display: block; margin-top: 12px; color: var(--ink-3); font-size: 10px; }
 
-.list { flex: 1; overflow-y: auto; }
+.list { flex: none; overflow: visible; }
 .ev { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; padding: 13px 16px; border-bottom: 1px solid var(--rule); text-decoration: none; color: inherit; }
 .ev:hover { background: var(--panel-2); }
 .ev .name { font: 700 14.5px/1.35 var(--f-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -156,18 +152,6 @@ svg.hours { width: 100%; height: auto; display: block; }
 .hbar.dim { opacity: .3; }
 .hgrid { stroke: var(--rule); stroke-width: 1; }
 .axis { font: 400 10px var(--f-mono); fill: var(--ink-3); }
-.tblwrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; }
-table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric: tabular-nums; }
-.hm th { font: 500 11px/1.2 var(--f-body); color: var(--ink-2); padding: 3px 5px; white-space: nowrap; }
-.hm thead th { text-align: center; vertical-align: bottom; font-size: 10.5px; }
-.hm thead th small { display: block; font: 400 9.5px var(--f-mono); color: var(--ink-3); margin-top: 2px; }
-.hm tbody th { text-align: left; cursor: pointer; position: sticky; left: 0; background: var(--panel); z-index: 1; }
-.hm tbody th:hover { color: var(--ink); text-decoration: underline; }
-.hm tr.cur th { color: var(--accent); font-weight: 700; }
-.hm td { min-width: 40px; height: 24px; text-align: center; font: 500 10.5px var(--f-mono); border-radius: 4px; }
-.hm td.sig { box-shadow: inset 0 0 0 2px var(--ink); font-weight: 700; }
-.hm td.near { box-shadow: inset 0 0 0 1px var(--ink-2); background-image: repeating-linear-gradient(135deg, transparent 0 5px, rgb(0 0 0 / 10%) 5px 6px); }
-.hm td.low { color: var(--ink-3); }
 .tip { position: fixed; z-index: 10; pointer-events: none; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; box-shadow: var(--shadow); padding: 6px 9px; font-size: 12px; }
 
 .maplibregl-ctrl-group { background: var(--panel) !important; border: 1px solid var(--rule); box-shadow: var(--shadow) !important; }
@@ -178,88 +162,141 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
 .maplibregl-popup-tip { display: none; }
 .pop b { font-size: 14px; }
 .pop .m { font-family: var(--f-mono); color: var(--ink-2); font-size: 12px; }
+.pop-detail { min-width: 245px; max-width: 290px; }
+.pop-detail .pop-sub { color: var(--ink-3); font-size: 11.5px; margin: 9px 0 4px; }
+.pop-topic { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; margin-top: 6px; font-size: 11.5px; }
+.pop-topic span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pop-topic strong { font: 600 11.5px var(--f-mono); }
+.pop-topic i { grid-column: 1 / -1; display: block; height: 3px; border-radius: 2px; background: var(--accent); }
+.pop-note { color: var(--ink-3); font-size: 10.5px; margin-top: 9px; }
 .loadfail { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink-3); font-size: 14px; text-align: center; padding: 24px; }
 
 /* One information rail; the map is the entire right-hand canvas. */
-.side { grid-column: 1; grid-row: 1; overflow-y: auto; border-left: 0; border-right: 1px solid var(--rule); }
-#map { grid-column: 2; grid-row: 1; }
-.card { position: static; width: auto; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; box-shadow: none; padding: 20px 20px 16px; }
+.side { grid-column: 1; grid-row: 1; overflow-y: auto; border: 1px solid var(--rule); border-radius: 16px; box-shadow: var(--shadow); }
+.card { position: static; width: auto; border: 0; border-radius: 0; box-shadow: none; padding: 0; }
+.map-filters { display: grid; gap: 12px; }
+.map-filters h2 { margin: 0; font: 700 12px var(--f-body); }
+.filter-row { display: flex; align-items: flex-end; gap: 12px 18px; flex-wrap: wrap; }
+.filter-unit { display: grid; gap: 7px; min-width: 0; }
+.filter-unit > .label, .filter-unit > .filter-label { flex: none; margin: 0; white-space: nowrap; }
+.filter-unit .days { width: 390px; max-width: 100%; }
+.map-filters .filter-unit { width: 100%; }
+.map-filters .topic { padding: 5px 8px; font-size: 11.5px; }
+.map-filters .topic small { font-size: 9px; }
+.map-filters .topics, .map-filters .filter-options { gap: 6px; }
+.map-filters .check { margin: 0 0 1px; white-space: nowrap; }
+.schedule-row .filter-unit { width: auto; }
+.schedule-row .schedule-time { flex: 0 0 auto; min-width: 420px; }
+.schedule-row > .schedule-check { align-self: end; margin: 0 0 7px; }
+.rail-heading { padding: 20px 20px 4px; }
 .side-top { padding: 16px 20px 0; }
 .pane { flex: none; }
 .side-head { padding: 0 20px 12px; }
-.list { flex: none; max-height: 36dvh; min-height: 180px; }
+.list { flex: none; max-height: none; min-height: 0; }
 .ev { padding-inline: 20px; }
 .insights { overflow: visible; padding: 20px; border-top: 1px solid var(--rule); }
 .insights > h2 { margin: 0 0 14px; font-size: 18px; }
-.tools { top: 14px; left: 14px; }
 .topics { display: flex; flex-wrap: wrap; gap: 6px; }
 .topic { border: 1px solid var(--rule); background: var(--panel-2); border-radius: 6px; padding: 6px 9px; font-size: 12px; line-height: 1.25; cursor: pointer; }
 .topic[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .topic small { font: 400 10px var(--f-mono); opacity: .7; margin-left: 3px; }
 .topic:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.mini-analysis { position: absolute; z-index: 2; right: 14px; bottom: 32px; width: min(300px, calc(100% - 28px)); background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; box-shadow: var(--shadow); padding: 12px 14px; font-size: 12px; }
-.mini-analysis h2 { margin: 0 0 8px; font-size: 13px; }
-.mini-analysis p { margin: 0; color: var(--ink-2); }
-.mini-analysis .mini-row { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-top: 1px solid var(--rule); }
-.mini-analysis .mini-row b { font: 500 12px var(--f-mono); white-space: nowrap; }
+.filter-label { font: 500 11px var(--f-mono); letter-spacing: .06em; color: var(--ink-3); margin: 14px 0 6px; text-transform: uppercase; }
+.filter-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.filter-options .topic { background: var(--panel); }
+.filter-options .topic[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.side-top { margin-top: 0; padding-top: 12px; border-top: 0; }
+.tabs { margin-top: 14px; }
+.pane[hidden] { display: none; }
 @media (max-width: 900px) {
-  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(350px, 56dvh) auto; height: auto; min-height: 100dvh; }
-  #map { grid-column: 1; grid-row: 1; }
-  .side { grid-column: 1; grid-row: 2; overflow: visible; border-right: 0; border-top: 1px solid var(--rule); }
-  .list { max-height: 38dvh; }
-  .mini-analysis { bottom: 32px; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; gap: 10px; height: auto; min-height: 100dvh; padding: 8px; }
+  .map-column { grid-column: 1; grid-row: 1; }
+  .map-stage { min-height: 46dvh; }
+  .side { grid-column: 1; grid-row: 2; overflow: visible; }
+  .filter-unit { flex-wrap: wrap; width: 100%; }
+  .filter-unit .days { width: 100%; }
+  .schedule-row .filter-unit, .schedule-row .schedule-time { width: 100%; min-width: 0; }
+  .map-controls { position: fixed; right: 10px; bottom: 10px; }
+  .map-stats { top: 10px; right: 52px; width: calc(100% - 64px); }
   h1 { font-size: 17px; margin: 4px 0 8px; }
   .days button { font-size: 12px; }
-  .mlegend { left: 10px; bottom: 10px; right: 10px; max-width: none; }
 }
 </style>
 <body>
 <div class="app">
-  <div id="map">
-    <div class="tools" id="tools">
-      <div class="seg" id="theme" role="group">
-        <button type="button" data-t="light">☀</button>
-        <button type="button" data-t="dark">☾</button>
-        <button type="button" data-t="auto">◐</button>
-      </div>
-      <div class="seg" id="lang" role="group">
-        <button type="button" data-l="zh">中</button>
-        <button type="button" data-l="en">EN</button>
-      </div>
-      <span class="basemap">Basemap: OpenFreeMap</span>
+  <div class="map-column">
+    <div class="map-toolbar">
+      <section class="card map-filters" id="card" data-i18n-aria="filters">
+        <div class="filter-row schedule-row">
+          <div class="filter-unit"><div class="filter-label" data-i18n="date"></div><div class="days" id="days" role="group"></div></div>
+          <div class="filter-unit schedule-time">
+            <div class="filter-label" data-i18n="timeRange"></div>
+            <div class="filter-options" id="timeRange" role="group"></div>
+          </div>
+          <label class="check schedule-check"><input type="checkbox" id="openOnly"><span data-i18n="openOnly"></span></label>
+        </div>
+        <div class="filter-row"><div class="filter-unit"><div class="label" data-i18n="topic"></div><div class="topics" id="domain" role="group"></div></div></div>
+        <div class="filter-row">
+          <div class="filter-unit">
+            <div class="filter-label" data-i18n="format"></div>
+            <div class="filter-options" id="formats" role="group"></div>
+          </div>
+        </div>
+      </section>
     </div>
-    <div class="mlegend" id="mlegend" hidden></div>
-    <section class="mini-analysis" id="mini-analysis" aria-live="polite"></section>
+    <div class="map-stage">
+      <div id="map"></div>
+      <section class="map-stats" aria-label="Map results">
+        <div class="count" id="count" aria-live="polite"></div>
+        <div class="bar" id="bar"></div>
+        <div class="legend" id="legend"></div>
+        <div class="offnote" id="offnote"></div>
+      </section>
+      <div class="map-controls">
+        <div class="seg" id="theme" role="group">
+          <button type="button" data-t="light">☀</button>
+          <button type="button" data-t="dark">☾</button>
+          <button type="button" data-t="auto">◐</button>
+        </div>
+        <span class="basemap">Basemap: OpenFreeMap</span>
+      </div>
+    </div>
   </div>
 
   <aside class="side" id="side">
-    <section class="card" id="card" data-i18n-aria="filters">
+    <div class="rail-heading">
       <div class="eyebrow" data-i18n="eyebrow"></div>
       <h1 id="title"></h1>
-      <div class="days" id="days" role="group"></div>
-      <div class="label" data-i18n="topic"></div>
-      <div class="topics" id="domain" role="group"></div>
-      <label class="check"><input type="checkbox" id="openOnly"><span data-i18n="openOnly"></span></label>
-      <div class="meta"><p data-i18n-html="meta1"></p><p data-i18n="meta2"></p></div>
-    </section>
+      <p class="product-promise" data-i18n="productPromise"></p>
+      <section class="personalize" id="personalize" aria-label="Audience and intent filters">
+        <div class="profile-group">
+          <span class="profile-label" data-i18n="whoLabel"></span>
+          <div class="profile-options" id="roleOptions"></div>
+        </div>
+        <div class="profile-group">
+          <span class="profile-label" data-i18n="goalLabel"></span>
+          <div class="profile-options" id="goalOptions"></div>
+        </div>
+        <span class="profile-limit" data-i18n="profileLimit"></span>
+      </section>
+    </div>
     <div class="side-top">
       <input class="search" id="q" type="search" autocomplete="off">
     </div>
 
-    <div class="pane" id="pane-events">
-      <div class="side-head">
-        <div class="count" id="count" aria-live="polite"></div>
-        <div class="chips" id="chips"></div>
-        <div class="bar" id="bar"></div>
-        <div class="legend" id="legend"></div>
-        <div class="offnote" id="offnote"></div>
+    <div class="side-head">
+      <div class="chips" id="chips"></div>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-events" aria-controls="pane-events" data-tab="events" data-i18n="tabEvents"></button>
+        <button type="button" role="tab" id="tab-insights" aria-controls="pane-insights" data-tab="insights" data-i18n="tabInsights"></button>
       </div>
+    </div>
+    <div class="pane" id="pane-events" role="tabpanel" aria-labelledby="tab-events">
       <div class="list" id="list"></div>
     </div>
 
-    <div class="pane" id="pane-insights">
+    <div class="pane" id="pane-insights" role="tabpanel" aria-labelledby="tab-insights" hidden>
       <div class="insights">
-        <h2 data-i18n="tabInsights"></h2>
         <div class="facts" id="facts"></div>
         <div class="sec">
           <div class="hourhead">
@@ -271,12 +308,6 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
           </div>
           <svg class="hours" id="hours" viewBox="0 0 380 150" role="img"></svg>
           <p class="hint" data-i18n="hourNote"></p>
-        </div>
-        <div class="sec">
-          <h2 data-i18n="liftTitle"></h2>
-          <p class="hint" data-i18n="liftDesc"></p>
-          <div class="tblwrap"><table class="hm" id="heat"></table></div>
-          <p class="hint" style="margin-top:8px" data-i18n="liftBasis"></p>
         </div>
       </div>
     </div>
@@ -291,24 +322,17 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
   const TW = window.TW;
 
   // ---------- i18n ----------
-  const DOMAIN_ZH = {
-    "AI": "人工智能", "B2B": "企业对企业", "Fundraising / Investing": "融资 / 投资", "Engineering": "工程技术",
-    "Deep Tech": "深科技", "GTM": "市场进入", "B2C / Consumer": "消费市场", "Infrastructure": "基础设施",
-    "SaaS": "软件服务", "Healthcare / Healthtech": "医疗健康", "Fintech": "金融科技", "Creators": "创作者",
-    "Media / Entertainment": "媒体 / 娱乐", "Hardware": "硬件", "International / Expansion": "国际化 / 扩张",
-    "HR / Hiring": "人力 / 招聘", "Women-focused": "女性主题", "Cybersecurity": "网络安全",
-    "Defense": "国防", "Climate": "气候", "Crypto / Web3": "加密 / Web3", "Gaming": "游戏", "AR / VR": "增强 / 虚拟现实",
-  };
   const I18N = {
     zh: {
-      pageTitle: "SF Tech Week 活动地图", htmlLang: "zh-CN",
+      pageTitle: "SF Tech Week 活动指南", htmlLang: "zh-CN",
       eyebrow: "SF Tech Week · 2026.10.05—10.11",
-      title: (n) => `SF Tech Week 2026 · ${n} 场活动在哪里`,
-      filters: "筛选", allWeek: "全周", days7: "7 天", days: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
+      title: () => "1700+场｜SF Tech Week 2026",
+      productPromise: "找到真正值得你参加的活动。",
+      filters: "筛选", date: "日期", allWeek: "全周", days7: "7 天", days: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
       topic: "官方主题 · 23", allTopics: "全部主题", openOnly: "只看仍可报名",
-      more: "更多筛选 ▾", less: "收起 ▴",
-      meta1: "地图标记显示主办方填写的<strong>街区</strong>，位置为街区中心；缩小时相邻街区会合并。",
-      meta2: "“East Bay”只有地区、没有城市，位置放在奥克兰作示意。",
+      timeRange: "开始时间", allTimes: "全部时间", timeLabels: ["8点前", "8点–12点", "12点–5点", "5点后"],
+      format: "活动类型", allFormats: "全部类型",
+      whoLabel: "你的身份", goalLabel: "你想获得什么", profileLimit: "身份最多 2 个 · 目标最多 3 个",
       light: "浅色", dark: "深色", auto: "跟随系统", theme: "配色", language: "语言",
       search: "搜索活动名或主办方", tabEvents: "活动", tabInsights: "分析", sideLabel: "活动与分析",
       count: (n, w) => `<span class="num">${n}</span> 场活动${w}`,
@@ -320,32 +344,26 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
       moreRows: (a, b) => `已显示 ${a} / ${b} 场，继续往下滚动加载`, suspect: "开始时间存疑",
       status: { open: "可报名", waitlist: "候补", sold_out: "已满", closed: "已关闭", unknown: "状态未知" },
       popCluster: (n, c) => `<b>${n} 场</b><div class="m">${c} 个街区 · 点击放大</div>`,
-      popHood: (h, n, lift) => `<b>${h}</b><div class="m">${n} 场${lift} · 点击只看这里</div>`,
-      popLift: (l) => ` · 相对集中度 ${l}×`,
-      loadfail: "底图库加载失败（需要联网）。<br>右侧列表仍可使用。",
+      popHood: (h, n) => `<b>${h}</b><div class="m">${n} 场 · 点击只看这里</div>`,
+      popTopics: "占比最高的 5 个主题", popMulti: "一场活动可属于多个主题", popNoTopics: "这些活动没有主题标签",
+      loadfail: "底图库加载失败（需要联网）。<br>左侧列表仍可使用。",
       f1: "的活动集中在 SOMA、FiDi、Downtown 三个相邻街区",
-      f2: "个“街区 × 主题”组合统计上显著集中",
+      f2: "个官方主题可直接筛选",
       f3: "的活动在 17:00–18:59 开始，时间比地点更集中",
       hourTitle: (s) => `开始时间 · ${s}`, allDay: "全天", play: "▶ 播放一天", pause: "❚❚ 暂停",
       hourNote: "点柱子只看那一小时开始的活动（地图和列表一起变）；4 场 0–6 点开始的时间存疑，不计入。",
       hourAria: (h, c) => `${h}:00 开始 ${c} 场`, hourTip: (h, c) => `<b>${h}:00–${h}:59 开始</b><br>${c} 场`,
-      liftTitle: "哪个主题更集中在哪些街区？",
-      liftDesc: "相对集中度（lift）= 该主题在这个街区的占比 ÷ 在全城的占比。1.00 表示与全城相同，1.68 表示是全城平均占比的 1.68 倍。只列全周 ≥ 25 场的 12 个街区；粗框表示统计显著（q < 0.05），· 表示少于 5 场。点主题名可切换地图。",
-      liftBasis: "表格基于全周有街区位置的活动，不随上面的筛选变化。",
-      liftCell: (h, d, k, n, l, q) => `${h} · ${d}：${k}/${n} 场，lift ${l}，q ${q}`,
-      mlTitle: (d) => `${d}：在这里的占比 vs 全城`,
-      ml: ["≥ 1.5 偏多", "1.15–1.5", "持平", "0.67–0.87", "≤ 0.67 偏少", "样本 < 8 场"],
-      mlRing: "圈 = 统计显著的聚集",
     },
     en: {
-      pageTitle: "SF Tech Week Event Map", htmlLang: "en",
+      pageTitle: "SF Tech Week Event Guide", htmlLang: "en",
       eyebrow: "SF Tech Week · Oct 5–11, 2026",
-      title: (n) => `SF Tech Week 2026 · where ${n} events happen`,
-      filters: "Filters", allWeek: "All", days7: "7 days", days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      topic: "Official topics · 23", allTopics: "All topics", openOnly: "Open registration only",
-      more: "More filters ▾", less: "Less ▴",
-      meta1: "Map markers show the <strong>neighborhood</strong> entered by hosts, placed at its center. Nearby neighborhoods merge as you zoom out.",
-      meta2: "“East Bay” has no city, so it is pinned to Oakland as an approximation.",
+      title: () => "1700+场｜SF Tech Week 2026",
+      productPromise: "Find the events worth your time.",
+      filters: "Filters", date: "Date", allWeek: "All", days7: "7 days", days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      topic: "Topics", allTopics: "All topics", openOnly: "Open registration only",
+      timeRange: "Start time", allTimes: "Any time", timeLabels: ["Before 8am", "8am–12pm", "12pm–5pm", "After 5pm"],
+      format: "Type", allFormats: "All types",
+      whoLabel: "Who are you?", goalLabel: "What are you looking for?", profileLimit: "Up to 2 roles · 3 goals",
       light: "Light", dark: "Dark", auto: "Match system", theme: "Theme", language: "Language",
       search: "Search event or host", tabEvents: "Events", tabInsights: "Insights", sideLabel: "Events and insights",
       count: (n, w) => `<span class="num">${n}</span> events ${w}`,
@@ -357,30 +375,34 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
       moreRows: (a, b) => `Showing ${a} of ${b} — scroll for more`, suspect: "start time uncertain",
       status: { open: "Open", waitlist: "Waitlist", sold_out: "Sold out", closed: "Closed", unknown: "Unknown" },
       popCluster: (n, c) => `<b>${n} events</b><div class="m">${c} neighborhoods · click to zoom</div>`,
-      popHood: (h, n, lift) => `<b>${h}</b><div class="m">${n} events${lift} · click to filter</div>`,
-      popLift: (l) => ` · lift ${l}`,
-      loadfail: "The map library failed to load (needs internet).<br>The list still works.",
+      popHood: (h, n) => `<b>${h}</b><div class="m">${n} events · click to filter</div>`,
+      popTopics: "Top 5 themes by share", popMulti: "An event may have multiple topics", popNoTopics: "These events have no topic tags",
+      loadfail: "The map library failed to load (needs internet).<br>The left-hand list still works.",
       f1: "of events are in three adjacent neighborhoods: SOMA, FiDi, Downtown",
-      f2: "neighborhood × topic pairs are statistically significant",
+      f2: "official topics can be filtered directly",
       f3: "of events start 17:00–18:59 — time is more concentrated than place",
       hourTitle: (s) => `Start time · ${s}`, allDay: "All day", play: "▶ Play a day", pause: "❚❚ Pause",
       hourNote: "Click a bar to filter by start hour (map and list update). 4 events starting 0–6am have uncertain times and are excluded.",
       hourAria: (h, c) => `${c} events start at ${h}:00`, hourTip: (h, c) => `<b>Starts ${h}:00–${h}:59</b><br>${c} events`,
-      liftTitle: "Which topics favor which neighborhoods?",
-      liftDesc: "Lift = a topic's share in the neighborhood ÷ its share citywide; 1.00 = same as citywide. The 12 neighborhoods with ≥ 25 events all week. Bold outline = significant after multiple-testing correction (q < 0.05); hatched = borderline (q < 0.10); · = fewer than 5 events. Click a topic to color the map by lift.",
-      liftBasis: "The table uses the full week of located events and ignores the filters above.",
-      liftCell: (h, d, k, n, l, q) => `${h} · ${d}: ${k}/${n} events, lift ${l}, q ${q}`,
-      mlTitle: (d) => `${d}: share here vs. citywide`,
-      ml: ["≥ 1.5× more", "1.15–1.5×", "about the same", "0.67–0.87×", "≤ 0.67× fewer", "< 8 events"],
-      mlRing: "Ring = significant cluster",
     },
   };
   const DATES = ["10/5", "10/6", "10/7", "10/8", "10/9", "10/10", "10/11"];
   const STATUS = [["open", "--st-open"], ["waitlist", "--st-wait"], ["sold_out", "--st-full"], ["closed", "--st-closed"], ["unknown", "--st-unknown"]];
   const STATUS_VAR = Object.fromEntries(STATUS);
   const STYLES = { light: "https://tiles.openfreemap.org/styles/positron", dark: "https://tiles.openfreemap.org/styles/dark" };
-  const PAGE = 120, H0 = 6, H1 = 22, MIN_N_FOR_LIFT = 8;
+  const PAGE = 120, H0 = 6, H1 = 22;
+  const TIME_RANGES = [[0, 8], [8, 12], [12, 17], [17, 24]];
   const CORE3 = ["SOMA", "FiDi", "Downtown"];
+  const ROLE_DEFS = [
+    ["founder", "Founder", ["founders"]], ["investor", "Investor", ["investors"]],
+    ["engineer", "Engineer", ["engineers"]], ["marketing", "Marketing", ["marketing-comms", "sales-bd"]],
+    ["creator", "Creator", ["creators"]],
+  ];
+  const GOAL_DEFS = [
+    ["funding", "Funding", ["raise-funding"]], ["customers", "Customers", ["find-customers"]],
+    ["hiring", "Hiring", ["hire-or-find-work"]], ["learning", "Learning", ["learn-build"]],
+    ["networking", "Networking", ["meet-peers", "creator-collaboration"]],
+  ];
 
   const $ = (id) => document.getElementById(id);
   const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
@@ -392,28 +414,47 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
     set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
   };
 
-  // events: [hood, day, hour, groupedDomainMask, name, host, time, status, url, officialThemeMask]
+  // events: [hood, day, hour, groupedDomainMask, name, host, time, status, url,
+  //          officialThemeMask, formatMask, intentMask, audienceMask]
   const ev = TW.events;
   const hoods = TW.hoods;
   const hoodIdx = Object.fromEntries(hoods.map((h, i) => [h.name, i]));
   const searchKey = ev.map((e) => (e[4] + " " + e[5]).toLowerCase());
-  const sigByHood = {};
-  for (const L of TW.themeLift) if (L.sig) (sigByHood[L.hood] ||= []).push(L.theme);
+  const savedProfile = (() => { try { return JSON.parse(store.get("tw-profile") || "null"); } catch { return null; } })();
+  const savedRoles = savedProfile?.roles?.filter((x) => ROLE_DEFS.some((r) => r[0] === x)) || [];
+  const savedGoals = savedProfile?.goals?.filter((x) => GOAL_DEFS.some((g) => g[0] === x)) || [];
   const state = {
-    day: -1, domain: -1, hour: null, openOnly: false, q: "", hood: null, shown: PAGE, includeOff: false,
+    day: -1, domain: -1, format: -1, timeRange: -1, hour: null, openOnly: false, q: "", hood: null, shown: PAGE, includeOff: false,
     tab: "events", playing: null,
-    lang: ["zh", "en"].includes(params.get("lang")) ? params.get("lang") : (store.get("tw-lang") || "zh"),
+    roles: savedRoles, goals: savedGoals,
+    lang: "en",
   };
   let T = I18N[state.lang];
-  const dName = (d) => (state.lang === "zh" ? (DOMAIN_ZH[d] || d) : d);
+  const dName = (d) => d;
+  const tagMask = (universe, tags) => tags.reduce((m, tag) => {
+    const i = universe.indexOf(tag); return i < 0 ? m : m | (1 << i);
+  }, 0);
+  const roleMasks = Object.fromEntries(ROLE_DEFS.map(([id, label, tags]) => [id, { label, mask: tagMask(TW.audiences || [], tags) }]));
+  const goalMasks = Object.fromEntries(GOAL_DEFS.map(([id, label, tags]) => [id, { label, mask: tagMask(TW.intents || [], tags) }]));
+
+  function profileMatch(e) {
+    const roleHits = state.roles.filter((id) => e[12] & roleMasks[id].mask);
+    const goalHits = state.goals.filter((id) => e[11] & goalMasks[id].mask);
+    const hasProfile = state.roles.length || state.goals.length;
+    const qualified = !!hasProfile && (!state.roles.length || roleHits.length > 0) && (!state.goals.length || goalHits.length > 0);
+    return { qualified, score: roleHits.length * 2 + goalHits.length * 3, roleHits, goalHits };
+  }
 
   // ---------- filtering ----------
   function passes(i, { useDomain = true, useHour = true } = {}) {
     const e = ev[i];
     return (state.day < 0 || e[1] === state.day) &&
       (!useDomain || state.domain < 0 || (e[9] & (1 << state.domain))) &&
+      (state.format < 0 || (e[10] & (1 << state.format))) &&
+      (state.timeRange < 0 || (e[2] >= TIME_RANGES[state.timeRange][0] && e[2] < TIME_RANGES[state.timeRange][1])) &&
       (!useHour || state.hour === null || e[2] === state.hour) &&
       (!state.openOnly || e[7] === "open") &&
+      (!(state.roles.length || state.goals.length) || profileMatch(e).qualified) &&
       (!state.q || searchKey[i].includes(state.q));
   }
 
@@ -425,17 +466,20 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
     document.querySelectorAll("[data-i18n]").forEach((n) => (n.textContent = T[n.dataset.i18n]));
     document.querySelectorAll("[data-i18n-html]").forEach((n) => (n.innerHTML = T[n.dataset.i18nHtml]));
     document.querySelectorAll("[data-i18n-aria]").forEach((n) => n.setAttribute("aria-label", T[n.dataset.i18nAria]));
-    $("title").textContent = T.title(fmt(ev.length));
+    $("title").innerHTML = '<span class="title-count">1700+场</span>｜SF Tech Week 2026';
     $("q").placeholder = T.search; $("q").setAttribute("aria-label", T.search);
-    $("days").setAttribute("aria-label", T.filters);
+    $("days").setAttribute("aria-label", T.date);
     $("domain").setAttribute("aria-label", T.topic);
+    $("timeRange").setAttribute("aria-label", T.timeRange);
+    $("formats").setAttribute("aria-label", T.format);
     $("side").setAttribute("aria-label", T.sideLabel);
     $("theme").setAttribute("aria-label", T.theme);
-    $("lang").setAttribute("aria-label", T.language);
     document.querySelectorAll("#theme button").forEach((b) => { b.title = T[b.dataset.t]; b.setAttribute("aria-label", T[b.dataset.t]); });
-    document.querySelectorAll("#lang button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.l === state.lang));
     buildDays();
     buildDomainButtons();
+    buildTimeRangeButtons();
+    buildFormatButtons();
+    renderProfile();
     $("play").textContent = state.playing ? T.pause : T.play;
     const lf = document.querySelector(".loadfail");
     if (lf) lf.innerHTML = T.loadfail;
@@ -454,20 +498,53 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
     });
   }
   const domCount = TW.themes.map((d, i) => ev.filter((e) => e[9] & (1 << i)).length);
+  const formatCount = TW.formats.map((f, i) => ev.filter((e) => e[10] & (1 << i)).length);
+  const featuredFormats = ["Hackathon", "Networking", "Panel / Fireside Chat", "Experiential"];
   function buildDomainButtons() {
     $("domain").innerHTML = `<button class="topic" type="button" data-d="-1" aria-pressed="${state.domain < 0}">${T.allTopics}</button>` +
       TW.themes.map((d, i) => `<button class="topic" type="button" data-d="${i}" aria-pressed="${state.domain === i}" title="${esc(d)}">${esc(dName(d))}<small>${domCount[i]}</small></button>`).join("");
     $("domain").querySelectorAll("button").forEach((b) => b.onclick = () => { state.domain = +b.dataset.d; update(); });
   }
+  function buildTimeRangeButtons() {
+    $("timeRange").innerHTML = `<button class="topic" type="button" data-r="-1" aria-pressed="${state.timeRange < 0}">${T.allTimes}</button>` +
+      T.timeLabels.map((label, i) => `<button class="topic" type="button" data-r="${i}" aria-pressed="${state.timeRange === i}">${label}</button>`).join("");
+    $("timeRange").querySelectorAll("button").forEach((b) => b.onclick = () => { stopPlay(); state.hour = null; state.timeRange = +b.dataset.r; update(); });
+  }
+  function buildFormatButtons() {
+    $("formats").innerHTML = `<button class="topic" type="button" data-f="-1" aria-pressed="${state.format < 0}">${T.allFormats}</button>` +
+      TW.formats.map((f, i) => [f, i]).sort((a, b) => {
+        const ai = featuredFormats.indexOf(a[0]), bi = featuredFormats.indexOf(b[0]);
+        return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a[1] - b[1];
+      }).map(([f, i]) => `<button class="topic" type="button" data-f="${i}" aria-pressed="${state.format === i}">${esc(f)}<small>${formatCount[i]}</small></button>`).join("");
+    $("formats").querySelectorAll("button").forEach((b) => b.onclick = () => { state.format = +b.dataset.f; update(); });
+  }
+  function saveProfile() {
+    store.set("tw-profile", JSON.stringify({ roles: state.roles, goals: state.goals }));
+  }
+  function choiceButtons(defs, selected, kind) {
+    return defs.map(([id, label]) => `<button class="profile-option" type="button" data-kind="${kind}" data-id="${id}" aria-pressed="${selected.includes(id)}">${label}</button>`).join("");
+  }
+  function renderProfile() {
+    $("roleOptions").innerHTML = choiceButtons(ROLE_DEFS, state.roles, "roles");
+    $("goalOptions").innerHTML = choiceButtons(GOAL_DEFS, state.goals, "goals");
+    document.querySelectorAll(".profile-option").forEach((b) => b.onclick = () => {
+      const values = state[b.dataset.kind], max = b.dataset.kind === "roles" ? 2 : 3, id = b.dataset.id;
+      const at = values.indexOf(id);
+      if (at >= 0) values.splice(at, 1); else { if (values.length >= max) values.shift(); values.push(id); }
+      saveProfile(); renderProfile(); update();
+    });
+  }
   $("openOnly").onchange = (e) => { state.openOnly = e.target.checked; update(); };
   let qT;
   $("q").oninput = (e) => { clearTimeout(qT); qT = setTimeout(() => { state.q = e.target.value.trim().toLowerCase(); update(); }, 120); };
-  document.querySelectorAll("#lang button").forEach((b) => (b.onclick = () => {
-    state.lang = b.dataset.l;
-    store.set("tw-lang", state.lang);
-    applyLang();
-    update();
-  }));
+  document.querySelectorAll(".tabs button").forEach((b) => (b.onclick = () => setTab(b.dataset.tab)));
+  function setTab(tab) {
+    state.tab = tab;
+    document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === tab));
+    $("pane-events").hidden = tab !== "events";
+    $("pane-insights").hidden = tab !== "insights";
+    if (tab === "insights") drawInsights();
+  }
 
   // ---------- theme & basemap ----------
   const themePref = () => {
@@ -507,7 +584,7 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
     ["water_name_point_label", "text-color", "#3b82a0"], ["water_name_line_label", "text-color", "#3b82a0"],
     ["highway-name-minor", "text-color", "#7b8680"], ["highway-name-major", "text-color", "#6d7872"],
   ];
-  // OpenFreeMap's dark style is near-black (land rgb 12, water rgb 27); lift it so streets and shoreline read.
+  // OpenFreeMap's dark style is near-black (land rgb 12, water rgb 27); brighten it so streets and shoreline read.
   const DARK_TWEAKS = [
     ["background", "background-color", "#1b2029"], ["water", "fill-color", "#0f1a24"], ["waterway", "line-color", "#0f1a24"],
     ["landuse_residential", "fill-color", "#1e242e"], ["landuse_park", "fill-color", "#1c2a25"], ["landcover_wood", "fill-color", "#1c2a25"],
@@ -521,7 +598,7 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
   let map = null, currentStyle = null;
   // Keep the map content clear of its small overlays.
   function framePadding() {
-    return { top: 40, bottom: 40, left: 30, right: 30 };
+    return { top: 40, bottom: 40, left: 30, right: innerWidth > 1200 ? 390 : 30 };
   }
   if (!window.maplibregl) {
     $("map").insertAdjacentHTML("beforeend", `<div class="loadfail"></div>`);
@@ -544,49 +621,32 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
     map.on("moveend", () => { state.shown = PAGE; drawSide(); });
   }
 
-  // Per-hood counts. n = events shown (all filters), t = same filters but any topic (the lift denominator).
+  // Per-neighborhood counts after all filters.
   function hoodStats() {
-    const n = new Array(hoods.length).fill(0), t = new Array(hoods.length).fill(0);
-    let N = 0, K = 0;
+    const n = new Array(hoods.length).fill(0);
     for (let i = 0; i < ev.length; i++) {
-      if (!passes(i, { useDomain: false })) continue;
-      const h = ev[i][0];
-      const hit = state.domain < 0 || (ev[i][9] & (1 << state.domain));
-      t[h]++;
-      if (hit) n[h]++;
-      if (hoods[h].ll) { N++; if (hit) K++; }
+      if (passes(i)) n[ev[i][0]]++;
     }
-    return { n, t, ratio: N ? K / N : 0 };
+    return { n };
   }
   let stats = null;
-  const showSig = () => state.domain >= 0 && state.day < 0 && state.hour === null && !state.openOnly && !state.q;
   function hoodGeoJSON() {
-    const d = TW.themes[state.domain];
     return {
       type: "FeatureCollection",
       features: hoods.map((h, i) => [h, i]).filter(([h, i]) => h.ll && stats.n[i] > 0).map(([h, i]) => ({
         type: "Feature", id: i, geometry: { type: "Point", coordinates: h.ll },
-        properties: { i, name: h.name, n: stats.n[i], t: stats.t[i], sig: showSig() && !!sigByHood[h.name]?.includes(d) },
+        properties: { i, name: h.name, n: stats.n[i] },
       })),
     };
   }
 
   const RADIUS = ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 13, 5, 19, 10, 26, 20, 38, 34, 50];
-  // lift of a bubble (cluster sums work too): (n / t) / citywide ratio
-  const liftExpr = () => ["/", ["/", ["get", "n"], ["max", ["get", "t"], 1]], Math.max(stats.ratio, 1e-9)];
-  function liftColorExpr() {
-    return ["case", ["<", ["get", "t"], MIN_N_FOR_LIFT], css("--lift-mid"),
-      ["step", liftExpr(), css("--lift-lo"), 0.67, css("--lift-lo-soft"), 0.87, css("--lift-mid"), 1.15, css("--lift-hi-soft"), 1.5, css("--lift-hi")]];
-  }
+  const countColor = ["step", ["get", "n"], "#2a78d6", 10, "#f3ca47", 40, "#e34948"];
   function paintBubbles() {
-    const lift = state.domain >= 0;
-    map.setPaintProperty("bub", "circle-color", lift ? liftColorExpr() : css("--bubble"));
-    map.setPaintProperty("bub", "circle-stroke-color", lift ? (isDark() ? "#0e1116" : "#ffffff") : css("--bubble-edge"));
-    map.setPaintProperty("bub", "circle-stroke-width", lift ? 1.5 : 1.3);
-    // White numbers on the saturated ends of the diverging scale.
-    map.setPaintProperty("bub-n", "text-color", lift && !isDark()
-      ? ["case", ["<", ["get", "t"], MIN_N_FOR_LIFT], css("--ink"), ["step", liftExpr(), "#ffffff", 0.67, css("--ink"), 1.5, "#ffffff"]]
-      : css("--ink"));
+    map.setPaintProperty("bub", "circle-color", countColor);
+    map.setPaintProperty("bub", "circle-stroke-color", isDark() ? "#161b22" : "#ffffff");
+    map.setPaintProperty("bub", "circle-stroke-width", 1.5);
+    map.setPaintProperty("bub-n", "text-color", ["case", ["<", ["get", "n"], 10], "#ffffff", [">=", ["get", "n"], 40], "#ffffff", "#15201f"]);
   }
 
   function addLayers() {
@@ -599,13 +659,10 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
     const accent = css("--accent");
     map.addSource("hoods", {
       type: "geojson", data: hoodGeoJSON(), cluster: true, clusterRadius: 34, clusterMaxZoom: 14,
-      clusterProperties: { n: ["+", ["get", "n"]], t: ["+", ["get", "t"]] },
+      clusterProperties: { n: ["+", ["get", "n"]] },
     });
     map.addSource("hl", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
     map.addLayer({ id: "bub", type: "circle", source: "hoods", paint: { "circle-radius": RADIUS, "circle-opacity": .96 } });
-    map.addLayer({ id: "bub-ring", type: "circle", source: "hoods", filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "sig"], true]], paint: {
-      "circle-radius": ["+", RADIUS, 6], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": css("--ink"), "circle-stroke-width": 2.5,
-    } });
     map.addLayer({ id: "bub-sel", type: "circle", source: "hoods", filter: ["==", ["get", "i"], -1], paint: {
       "circle-radius": ["+", RADIUS, 3], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": accent, "circle-stroke-width": 3.5,
     } });
@@ -625,26 +682,48 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
     bindOnce();
   }
 
-  let bound = false;
+  let bound = false, detailPopup = null;
+  function hoodTopicHtml(hoodIndex) {
+    const matching = [];
+    for (let i = 0; i < ev.length; i++) if (ev[i][0] === hoodIndex && passes(i)) matching.push(ev[i]);
+    const counts = TW.themes.map((theme, i) => ({ theme, count: matching.filter((e) => e[9] & (1 << i)).length }))
+      .filter((row) => row.count > 0).sort((a, b) => b.count - a.count).slice(0, 5);
+    const total = matching.length;
+    return `<div class="pop pop-detail"><b>${esc(hoods[hoodIndex].name)}</b><div class="m">${total} ${state.lang === "zh" ? "场活动" : "events"}</div>
+      <div class="pop-sub">${T.popTopics}</div>` +
+      (counts.length ? counts.map(({ theme, count }) => `<div class="pop-topic"><span title="${esc(theme)}">${esc(theme)}</span><strong>${Math.round(count / total * 100)}%</strong><i style="width:${count / total * 100}%"></i></div>`).join("") : `<div class="pop-note">${T.popNoTopics}</div>`) +
+      `<div class="pop-note">${T.popMulti}</div></div>`;
+  }
   function bindOnce() {
     if (bound) return;
     bound = true;
     const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 14 });
+    detailPopup = new maplibregl.Popup({ closeButton: true, closeOnClick: false, offset: 18, maxWidth: "310px" });
+    detailPopup.on("close", () => { if (state.hood !== null) selectHood(state.hood); });
     map.on("mousemove", "bub", (e) => {
       map.getCanvas().style.cursor = "pointer";
+      if (detailPopup.isOpen()) return;
       const f = e.features[0], p = f.properties;
-      const lift = state.domain >= 0 && p.t >= MIN_N_FOR_LIFT ? T.popLift(((p.n / p.t) / stats.ratio).toFixed(2)) : "";
-      const txt = p.cluster ? T.popCluster(p.n, p.point_count) : T.popHood(esc(p.name), p.n, lift);
+      const txt = p.cluster ? T.popCluster(p.n, p.point_count) : T.popHood(esc(p.name), p.n);
       popup.setLngLat(f.geometry.coordinates).setHTML(`<div class="pop">${txt}</div>`).addTo(map);
     });
     map.on("mouseleave", "bub", () => { map.getCanvas().style.cursor = ""; popup.remove(); });
     map.on("click", "bub", async (e) => {
       const f = e.features[0];
       if (f.properties.cluster) {
+        detailPopup.remove();
         const z = await map.getSource("hoods").getClusterExpansionZoom(f.properties.cluster_id);
         map.easeTo({ center: f.geometry.coordinates, zoom: z + 0.2 });
       } else {
-        selectHood(f.properties.i);
+        const i = f.properties.i;
+        popup.remove();
+        selectHood(i);
+        if (state.hood !== null) detailPopup.setLngLat(f.geometry.coordinates).setHTML(hoodTopicHtml(i)).addTo(map);
+      }
+    });
+    map.on("click", (e) => {
+      if (detailPopup.isOpen() && !map.queryRenderedFeatures(e.point, { layers: ["bub"] }).length && state.hood !== null) {
+        selectHood(state.hood);
       }
     });
   }
@@ -653,6 +732,7 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
     state.hood = state.hood === i ? null : i;
     state.shown = PAGE;
     syncSelected();
+    if (state.hood === null) detailPopup?.remove();
     redrawSide();
   }
   function syncSelected() {
@@ -662,18 +742,6 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
     const src = map && map.getSource("hl");
     if (!src) return;
     src.setData({ type: "FeatureCollection", features: i === null || !hoods[i].ll ? [] : [{ type: "Feature", geometry: { type: "Point", coordinates: hoods[i].ll } }] });
-  }
-
-  function drawMapLegend() {
-    const box = $("mlegend");
-    if (state.domain < 0 || !map) { box.hidden = true; return; }
-    const vars = ["--lift-hi", "--lift-hi-soft", "--lift-mid", "--lift-lo-soft", "--lift-lo"];
-    const anySig = showSig() && Object.values(sigByHood).some((ds) => ds.includes(TW.themes[state.domain]));
-    box.hidden = false;
-    box.innerHTML = `<b>${esc(T.mlTitle(dName(TW.themes[state.domain])))}</b>
-      <div class="sw">${vars.map((v, j) => `<span><i style="background:var(${v})"></i>${T.ml[j]}</span>`).join("")}
-      <span><i style="background:var(--lift-mid);opacity:.55"></i>${T.ml[5]}</span></div>
-      ${anySig ? `<div class="sw ring"><span><i></i>${T.mlRing}</span></div>` : ""}`;
   }
 
   // ---------- events pane ----------
@@ -729,8 +797,8 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
       </a>`).join("") + (list.length > state.shown ? `<div class="more" id="more">${T.moreRows(state.shown, fmt(list.length))}</div>` : "");
     const more = $("more");
     if (more) new IntersectionObserver((ents, obs) => {
-      if (ents[0].isIntersecting) { obs.disconnect(); state.shown += PAGE; const top = box.scrollTop; drawSide(); box.scrollTop = top; }
-    }, { root: box }).observe(more);
+      if (ents[0].isIntersecting) { obs.disconnect(); state.shown += PAGE; const top = $("side").scrollTop; drawSide(); $("side").scrollTop = top; }
+    }, { root: $("side") }).observe(more);
   }
   $("list").addEventListener("pointerover", (e) => { const a = e.target.closest(".ev"); if (a) highlight(+a.dataset.h); });
   $("list").addEventListener("pointerleave", () => highlight(null));
@@ -743,10 +811,9 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
   function drawFacts() {
     const core = ev.filter((e) => CORE3.includes(hoods[e[0]].name)).length;
     const timed = ev.filter((e) => e[2] >= 0).length, peak = ev.filter((e) => e[2] === 17 || e[2] === 18).length;
-    const sig = TW.themeLift.filter((L) => L.sig).length;
     $("facts").innerHTML = [
       [(100 * core / ev.length).toFixed(1) + "%", T.f1],
-      [`${sig} / ${TW.themeLift.length}`, T.f2],
+      [String(TW.themes.length), T.f2],
       [(100 * peak / timed).toFixed(1) + "%", T.f3],
     ].map(([b, s]) => `<div class="fact"><b>${b}</b><span>${s}</span></div>`).join("");
   }
@@ -778,7 +845,7 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
         class: "hbar" + (state.hour === null || state.hour === h ? "" : " dim"), tabindex: 0, role: "button", "aria-label": T.hourAria(h, c),
       }, hs);
       const hit = svgEl("rect", { x: x0 + j * bw, y: y1, width: bw, height: y0 - y1, fill: "transparent", style: "cursor:pointer" }, hs);
-      const pick = () => { stopPlay(); state.hour = state.hour === h ? null : h; update(); };
+      const pick = () => { stopPlay(); state.timeRange = -1; state.hour = state.hour === h ? null : h; update(); };
       [r, hit].forEach((n) => {
         n.addEventListener("click", pick);
         n.addEventListener("pointermove", (evt) => showTip(evt, T.hourTip(h, fmt(c))));
@@ -789,49 +856,10 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
     });
     svgEl("line", { x1: x0, x2: x1, y1: y0, y2: y0, stroke: "var(--ink-3)", "stroke-width": 1 }, hs);
     $("hours").setAttribute("aria-label", T.hourTitle(T.allDay));
-    $("hourtitle").textContent = T.hourTitle(state.hour === null ? T.allDay : `${state.hour}:00–${state.hour}:59`) +
+    $("hourtitle").textContent = T.hourTitle(state.hour !== null ? `${state.hour}:00–${state.hour}:59` : state.timeRange >= 0 ? T.timeLabels[state.timeRange] : T.allDay) +
       (state.hood !== null ? ` · ${hoods[state.hood].name}` : "");
   }
-  const liftBg = (l) => css(l >= 1.5 ? "--lift-hi" : l >= 1.15 ? "--lift-hi-soft" : l > 0.87 ? "--lift-mid" : l > 0.67 ? "--lift-lo-soft" : "--lift-lo");
-  function drawHeat() {
-    const byKey = {};
-    TW.themeLift.forEach((L) => (byKey[L.hood + "|" + L.theme] = L));
-    const hoodsH = [...new Set(TW.themeLift.map((L) => L.hood))].sort((a, b) => byKey[b + "|" + TW.themes[0]].n - byKey[a + "|" + TW.themes[0]].n);
-    const order = TW.themes.map((d, i) => i).sort((a, b) => domCount[b] - domCount[a]);
-    let html = "<thead><tr><th></th>" + hoodsH.map((h) => `<th scope="col">${esc(h)}<small>${byKey[h + "|" + TW.themes[0]].n}</small></th>`).join("") + "</tr></thead><tbody>";
-    for (const di of order) {
-      const d = TW.themes[di];
-      html += `<tr class="${state.domain === di ? "cur" : ""}"><th scope="row" data-d="${di}" tabindex="0">${esc(dName(d))}</th>`;
-      for (const h of hoodsH) {
-        const L = byKey[h + "|" + d];
-        if (L.k < 5) { html += `<td class="low">·</td>`; continue; }
-        const cls = L.sig ? "sig" : (L.q < 0.10 && L.lift > 1 ? "near" : "");
-        const strong = !isDark() && (L.lift >= 1.5 || L.lift <= 0.67);
-        html += `<td class="${cls}" style="background-color:${liftBg(L.lift)};color:${strong ? "#fff" : "var(--ink)"}" title="${esc(T.liftCell(h, dName(d), L.k, L.n, L.lift.toFixed(2), L.q))}">${L.lift.toFixed(2)}</td>`;
-      }
-      html += "</tr>";
-    }
-    const tbl = $("heat");
-    tbl.innerHTML = html + "</tbody>";
-    tbl.querySelectorAll("tbody th").forEach((th) => {
-      const go = () => { const d = +th.dataset.d; state.domain = state.domain === d ? -1 : d; update(); };
-      th.onclick = go;
-      th.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
-    });
-  }
-  function drawInsights() { drawFacts(); drawHours(); drawHeat(); }
-  function drawMiniAnalysis() {
-    const box = $("mini-analysis");
-    if (state.domain < 0) {
-      box.innerHTML = `<h2>${state.lang === "zh" ? "主题速览" : "Topic overview"}</h2><p>${state.lang === "zh" ? "选择左侧任一官方主题，查看哪些街区更集中。" : "Choose an official topic on the left to see where it concentrates."}</p>`;
-      return;
-    }
-    const theme = TW.themes[state.domain];
-    const rows = TW.themeLift.filter((L) => L.theme === theme && L.k >= 5).sort((a, b) => b.lift - a.lift).slice(0, 3);
-    box.innerHTML = `<h2>${esc(dName(theme))} · ${state.lang === "zh" ? "街区分布" : "by neighborhood"}</h2>` +
-      (rows.length ? rows.map((L) => `<div class="mini-row"><span>${esc(L.hood)}${L.sig ? " ◎" : ""}</span><b>${L.lift.toFixed(2)}×</b></div>`).join("") : `<p>${state.lang === "zh" ? "暂无足够样本" : "Not enough observations"}</p>`) +
-      `<p>${state.lang === "zh" ? "相对集中度：1.00× 为全城平均；◎ 为统计显著。基于全周数据。" : "Relative concentration: 1.00× is citywide average; ◎ is significant. Full-week data."}</p>`;
-  }
+  function drawInsights() { drawFacts(); drawHours(); }
 
   const playBtn = $("play");
   function stopPlay() {
@@ -839,6 +867,7 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
   }
   playBtn.onclick = () => {
     if (state.playing) { stopPlay(); return; }
+    state.timeRange = -1;
     state.hour = state.hour === null || state.hour >= H1 ? H0 : state.hour;
     playBtn.textContent = T.pause;
     update();
@@ -847,22 +876,25 @@ table.hm { border-collapse: separate; border-spacing: 2px; font-variant-numeric:
       state.hour++; update();
     }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 1400 : 800);
   };
-  $("allday").onclick = () => { stopPlay(); state.hour = null; update(); };
+  $("allday").onclick = () => { stopPlay(); state.hour = null; state.timeRange = -1; update(); };
 
   // ---------- update loop ----------
-  function redrawSide() { drawSide(); drawInsights(); drawMiniAnalysis(); }
+  function redrawSide() { drawSide(); if (state.tab === "insights") drawInsights(); }
   function update() {
     document.querySelectorAll("#days button").forEach((b, j) => b.setAttribute("aria-pressed", j - 1 === state.day));
     document.querySelectorAll("#domain button").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.d === state.domain));
+    document.querySelectorAll("#timeRange button").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.r === state.timeRange));
+    document.querySelectorAll("#formats button").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.f === state.format));
     state.shown = PAGE;
     stats = hoodStats();
     if (map && map.getSource("hoods")) { map.getSource("hoods").setData(hoodGeoJSON()); paintBubbles(); }
-    drawMapLegend();
+    if (detailPopup?.isOpen() && state.hood !== null) detailPopup.setHTML(hoodTopicHtml(state.hood));
     redrawSide();
   }
   stats = hoodStats();
   applyLang();
   setTheme(themePref());
+  setTab("events");
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (themePref() === "auto") setTheme("auto"); });
   update();
 })();
