@@ -29,6 +29,9 @@
   --st-full: #eb6834;
   --st-closed: #d03b3b;
   --st-unknown: #9aa1ad;
+  --density-low: #2a78d6;
+  --density-mid: #f3ca47;
+  --density-high: #e34948;
   --shadow: 0 1px 2px rgb(21 32 31 / 6%), 0 8px 28px rgb(21 32 31 / 10%);
   --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-body: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
@@ -81,7 +84,7 @@ h1 { font: 700 21px/1.25 var(--f-body); margin: 6px 0 12px; letter-spacing: -.01
 .seg button { border: 0; background: transparent; min-width: 30px; height: 26px; padding: 0 8px; cursor: pointer; font-size: 12.5px; color: var(--ink-3); }
 .seg button + button { border-left: 1px solid var(--rule); }
 .seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); font-weight: 700; }
-.basemap { font: 500 10.5px var(--f-mono); letter-spacing: .08em; color: var(--ink-3); text-transform: uppercase; }
+.basemap { font: 500 9px var(--f-mono); letter-spacing: .06em; color: var(--ink-3); text-transform: uppercase; }
 .map-controls { position: absolute; z-index: 3; right: 12px; bottom: 34px; display: grid; justify-items: start; gap: 6px; padding: 6px 8px; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--rule); border-radius: 9px; box-shadow: var(--shadow); }
 .map-stats { position: absolute; z-index: 3; top: 12px; right: 58px; width: min(360px, calc(100% - 76px)); padding: 14px 16px; background: color-mix(in srgb, var(--panel) 96%, transparent); border: 1px solid var(--rule); border-radius: 14px; box-shadow: var(--shadow); backdrop-filter: blur(8px); }
 .map-stats .count { margin: 0 0 10px; }
@@ -129,7 +132,8 @@ h1 { font: 700 21px/1.25 var(--f-body); margin: 6px 0 12px; letter-spacing: -.01
 .ev .sub { font-size: 12.5px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ev .st { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); margin-top: 3px; }
 .ev .st .d { font-family: var(--f-mono); color: var(--ink-3); font-size: 11.5px; }
-.ev .tm { grid-row: 1 / span 3; grid-column: 2; text-align: right; align-self: center; }
+.ev .tm { grid-row: 1 / span 2; grid-column: 2; text-align: right; align-self: center; }
+.ev.has-note .tm { grid-row: 1 / span 3; }
 .ev .tm b { display: block; font: 700 22px/1 var(--f-display); font-stretch: 85%; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
 .ev .tm small { display: block; margin-top: 6px; font: 500 10.5px var(--f-mono); letter-spacing: .06em; color: var(--ink-3); }
 .empty { padding: 28px 16px; color: var(--ink-3); font-size: 13.5px; text-align: center; }
@@ -221,35 +225,1033 @@ svg.hours { width: 100%; height: auto; display: block; }
   h1 { font-size: 17px; margin: 4px 0 8px; }
   .days button { font-size: 12px; }
 }
+
+/* 2026-09 redesign: full-bleed map with floating cockpit cards. */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #020308;
+  --panel: rgb(15 16 24 / 78%);
+  --panel-2: rgb(26 28 39 / 72%);
+  --ink: #f6f0e8;
+  --ink-2: #c9beb3;
+  --ink-3: #8f8782;
+  --rule: rgb(255 224 184 / 16%);
+  --accent: #ffb36a;
+  --accent-soft: rgb(255 179 106 / 15%);
+  --st-open: #54a2ff;
+  --st-wait: #f6b23c;
+  --st-full: #ff734d;
+  --st-closed: #ff4e64;
+  --st-unknown: #8b92a3;
+  --shadow: 0 18px 70px rgb(0 0 0 / 52%), inset 0 1px 0 rgb(255 255 255 / 8%);
+}
+html, body { background: #020308; overflow: hidden; }
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 18%, rgb(255 76 66 / 19%), transparent 34%),
+    radial-gradient(circle at 76% 24%, rgb(52 144 255 / 18%), transparent 30%),
+    radial-gradient(circle at 54% 76%, rgb(255 179 106 / 10%), transparent 38%),
+    linear-gradient(180deg, rgb(2 3 8 / 20%), rgb(2 3 8 / 74%));
+}
+.app {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: 100dvh;
+  padding: 0;
+  background: #020308;
+}
+.map-column,
+.map-stage,
+#map {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+#map {
+  filter: saturate(1.18) contrast(1.08) brightness(.78);
+}
+.map-toolbar {
+  position: fixed;
+  z-index: 5;
+  left: clamp(380px, 32vw, 500px);
+  right: 24px;
+  bottom: 24px;
+  display: block;
+  padding: 14px 18px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  background: linear-gradient(180deg, rgb(22 20 27 / 82%), rgb(8 8 14 / 78%));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px) saturate(1.15);
+}
+.map-toolbar::before,
+.side::before,
+.map-stats::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid rgb(255 255 255 / 6%);
+}
+.map-filters { gap: 10px; }
+.filter-row { gap: 10px 14px; }
+.filter-label,
+.label,
+.profile-label {
+  color: #c9a27c;
+  letter-spacing: .18em;
+}
+.filter-unit .days { width: min(540px, 42vw); }
+.days,
+.topic,
+.filter-options .topic,
+.profile-option,
+.search,
+.seg,
+.btn {
+  border-color: rgb(255 224 184 / 18%);
+  background: rgb(255 255 255 / 5%);
+  color: var(--ink-2);
+  border-radius: 9px;
+}
+.days button {
+  color: var(--ink-2);
+  text-transform: uppercase;
+}
+.days button small,
+.topic small { color: rgb(246 240 232 / 52%); }
+.days button[aria-pressed="true"],
+.topic[aria-pressed="true"],
+.filter-options .topic[aria-pressed="true"],
+.profile-option[aria-pressed="true"] {
+  background: linear-gradient(180deg, rgb(255 179 106 / 90%), rgb(178 83 43 / 90%));
+  border-color: rgb(255 206 153 / 70%);
+  color: #120b08;
+  box-shadow: 0 0 26px rgb(255 117 67 / 24%);
+}
+.map-stats {
+  top: 24px;
+  right: 24px;
+  width: min(390px, calc(100vw - 440px));
+  padding: 18px 20px;
+  border-radius: 0;
+  border-color: var(--rule);
+  background: linear-gradient(180deg, rgb(16 17 26 / 82%), rgb(8 8 14 / 78%));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px) saturate(1.1);
+}
+.map-stats .count {
+  font: 800 20px/1.15 var(--f-display);
+  letter-spacing: -.02em;
+}
+.bar { height: 9px; border-radius: 0; background: rgb(255 255 255 / 7%); }
+.legend,
+.offnote { color: var(--ink-2); }
+.offnote button { color: #ffbd7d; }
+.map-controls {
+  right: 24px;
+  bottom: 170px;
+  border-radius: 0;
+  background: rgb(10 11 18 / 72%);
+  border-color: var(--rule);
+  backdrop-filter: blur(14px);
+}
+.basemap { color: #b99a79; }
+.side {
+  position: fixed;
+  z-index: 6;
+  top: 24px;
+  left: 24px;
+  bottom: 24px;
+  width: clamp(330px, 28vw, 440px);
+  display: flex;
+  overflow: hidden;
+  border-radius: 0;
+  border: 1px solid var(--rule);
+  background: linear-gradient(180deg, rgb(16 17 26 / 82%), rgb(7 8 13 / 84%));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px) saturate(1.12);
+}
+.rail-heading {
+  padding: 24px 24px 8px;
+  border-bottom: 1px solid rgb(255 224 184 / 9%);
+}
+.eyebrow {
+  color: #b99a79;
+  letter-spacing: .22em;
+}
+h1 {
+  margin: 10px 0 8px;
+  color: var(--ink);
+  font: 800 clamp(27px, 2.7vw, 42px)/.96 var(--f-display);
+  font-stretch: 82%;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+.title-count {
+  color: #ff5b55;
+  text-shadow: 0 0 28px rgb(255 55 55 / 42%);
+}
+.product-promise {
+  color: #d6c9ba;
+  font-size: 13px;
+}
+.personalize {
+  margin-top: 18px;
+  padding: 15px 15px 16px;
+  border-color: rgb(84 162 255 / 36%);
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, rgb(84 162 255 / 14%), transparent 48%),
+    rgb(255 255 255 / 4%);
+}
+.personalize::before { background: #54a2ff; box-shadow: 0 0 20px #54a2ff; }
+.profile-options { gap: 7px; }
+.profile-option {
+  padding: 6px 10px;
+  color: #d9d2cc;
+}
+.profile-limit { color: var(--ink-3); }
+.side-top {
+  padding: 14px 24px 0;
+}
+.search {
+  height: 44px;
+  padding: 0 14px;
+  color: var(--ink);
+}
+.search::placeholder { color: rgb(246 240 232 / 42%); }
+.side-head {
+  padding: 0 24px 10px;
+  border-bottom-color: rgb(255 224 184 / 12%);
+}
+.tabs {
+  margin-top: 12px;
+  border-bottom-color: rgb(255 224 184 / 12%);
+}
+.tabs button {
+  color: var(--ink-3);
+  letter-spacing: .02em;
+}
+.tabs button[aria-selected="true"] {
+  color: var(--ink);
+  border-bottom-color: #ffb36a;
+}
+.pane {
+  min-height: 0;
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.list {
+  overflow: visible;
+}
+.ev {
+  padding: 14px 24px;
+  border-bottom-color: rgb(255 224 184 / 10%);
+}
+.ev:hover,
+.ev:focus-visible {
+  background:
+    linear-gradient(90deg, rgb(255 179 106 / 12%), transparent 75%),
+    rgb(255 255 255 / 4%);
+}
+.ev .name {
+  color: var(--ink);
+  font-size: 14px;
+}
+.ev .sub,
+.ev .st {
+  color: var(--ink-2);
+}
+.ev .tm b {
+  color: #ffcf9f;
+  font-size: 25px;
+  text-shadow: 0 0 18px rgb(255 179 106 / 23%);
+}
+.insights {
+  padding: 20px 24px 28px;
+  border-top-color: rgb(255 224 184 / 10%);
+}
+.fact {
+  border-radius: 0;
+  border-color: rgb(255 224 184 / 14%);
+  background: rgb(255 255 255 / 5%);
+}
+.fact b { color: #ffb36a; }
+.maplibregl-ctrl-group,
+.maplibregl-popup-content {
+  background: rgb(12 13 20 / 88%) !important;
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: 0;
+  backdrop-filter: blur(12px);
+}
+.maplibregl-ctrl-attrib {
+  background: rgb(0 0 0 / 45%) !important;
+  color: rgb(246 240 232 / 58%) !important;
+}
+@media (max-width: 900px) {
+  html, body { overflow: auto; }
+  .app { min-height: 100dvh; }
+  .map-column, .map-stage, #map {
+    position: relative;
+    height: 58dvh;
+  }
+  .side {
+    position: relative;
+    top: auto;
+    left: auto;
+    bottom: auto;
+    width: auto;
+    margin: 10px;
+    max-height: none;
+  }
+  .map-toolbar {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin: 10px;
+  }
+  .map-stats {
+    top: 12px;
+    right: 12px;
+    width: min(330px, calc(100vw - 24px));
+  }
+  .filter-unit .days { width: 100%; }
+}
+
+/* V2: mission-control composition. Default view is impact-first; list becomes a contextual drawer. */
+body::after {
+  content: "SANFRANCISCOTECHWEEK2026";
+  position: fixed;
+  z-index: 2;
+  left: 50%;
+  right: auto;
+  bottom: 24px;
+  width: min(1180px, calc(100vw - 48px));
+  pointer-events: none;
+  color: rgb(246 240 232 / 5%);
+  font: 800 clamp(34px, 7.2vw, 110px)/.82 var(--f-display);
+  font-stretch: 75%;
+  letter-spacing: -.075em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+}
+.app {
+  --rail-left: 38px;
+  --rail-width: min(480px, calc(100vw - 76px));
+  --rail-gap: 24px;
+  --float-border: rgb(255 224 184 / 20%);
+  --float-border-hot: rgb(255 179 106 / 30%);
+  --float-bg: linear-gradient(145deg, rgb(15 16 25 / 90%), rgb(9 10 17 / 72%));
+  --float-bg-soft: linear-gradient(145deg, rgb(21 23 34 / 82%), rgb(8 9 15 / 64%));
+  --float-shadow: 0 26px 90px rgb(0 0 0 / 62%), 0 8px 26px rgb(0 0 0 / 36%), inset 0 1px 0 rgb(255 255 255 / 9%);
+  --float-glow: 0 0 0 1px rgb(255 255 255 / 5%) inset, 0 0 42px rgb(255 91 85 / 11%);
+}
+.side {
+  top: 28px;
+  left: var(--rail-left);
+  bottom: auto;
+  width: var(--rail-width);
+  max-height: min(650px, calc(100dvh - 56px));
+  display: block;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  border-color: var(--float-border);
+  border-radius: 24px;
+  background: var(--float-bg);
+  box-shadow: var(--float-shadow), var(--float-glow);
+  backdrop-filter: blur(24px) saturate(1.16);
+}
+.side::-webkit-scrollbar { display: none; }
+.side::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, #ff5b55, #ffb36a, #54a2ff);
+  box-shadow: 0 0 28px rgb(255 106 74 / 48%);
+}
+.rail-heading {
+  padding: 20px 26px 12px;
+  border-bottom: 0;
+  min-height: 0;
+  overflow: auto;
+  overflow-x: hidden;
+}
+.eyebrow {
+  font-size: 17px;
+  color: rgb(255 198 142 / 74%);
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+.eyebrow .hot-count {
+  display: inline-block;
+  color: #ff5b55;
+  font: 800 2em/0.9 var(--f-display);
+  letter-spacing: -.06em;
+  text-shadow: 0 0 28px rgb(255 55 55 / 42%);
+  vertical-align: -.08em;
+}
+.eyebrow .event-date {
+  display: block;
+  margin-top: 4px;
+  font-size: .62em;
+  letter-spacing: .14em;
+  opacity: .9;
+}
+h1 {
+  max-width: 315px;
+  margin: 0;
+  font-size: 0;
+  line-height: 1;
+  letter-spacing: -.045em;
+}
+.title-count {
+  display: none;
+  margin-bottom: 0;
+  font-size: 1em;
+}
+.product-promise {
+  max-width: none;
+  margin-top: 12px;
+  font: 500 13px/1.35 var(--f-mono);
+  letter-spacing: .02em;
+  color: rgb(246 240 232 / 72%);
+  white-space: nowrap;
+}
+.personalize {
+  margin-top: 16px;
+  padding: 12px;
+  margin-inline: -1px;
+  border-color: rgb(84 162 255 / 42%);
+  border-radius: 14px;
+  background:
+    linear-gradient(90deg, rgb(84 162 255 / 20%), transparent 54%),
+    var(--float-bg-soft);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%), 0 18px 42px rgb(0 0 0 / 22%);
+}
+.profile-group + .profile-group { margin-top: 8px; }
+.profile-options { gap: 5px; }
+#goalOptions { flex-wrap: wrap; }
+.profile-option {
+  font-size: 12.5px;
+  padding: 7px 10px;
+}
+.profile-limit { display: none; }
+.side-top { flex: none; }
+.search {
+  height: 38px;
+  border-color: rgb(255 224 184 / 16%);
+  border-radius: 12px;
+  background: rgb(6 7 12 / 58%);
+  box-shadow: 0 16px 42px rgb(0 0 0 / 30%), inset 0 1px 0 rgb(255 255 255 / 6%);
+}
+.map-search {
+  position: fixed;
+  z-index: 5;
+  top: 28px;
+  left: calc(var(--rail-left) + var(--rail-width) + var(--rail-gap));
+  width: min(420px, max(0px, calc(100vw - var(--rail-left) - var(--rail-width) - var(--rail-gap) - 430px - 44px)));
+  min-width: 0;
+  padding: 0;
+}
+.map-search .search {
+  height: 42px;
+  background: rgb(9 10 16 / 62%);
+  backdrop-filter: blur(18px) saturate(1.08);
+}
+.replay-panel {
+  position: fixed;
+  z-index: 5;
+  top: 82px;
+  left: calc(var(--rail-left) + var(--rail-width) + var(--rail-gap));
+  width: min(420px, max(0px, calc(100vw - var(--rail-left) - var(--rail-width) - var(--rail-gap) - 430px - 44px)));
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--float-border);
+  border-radius: 22px;
+  background: var(--float-bg);
+  box-shadow: var(--float-shadow), 0 0 34px rgb(84 162 255 / 10%);
+  backdrop-filter: blur(22px) saturate(1.18);
+}
+.replay-btn, .filter-reset {
+  min-width: 76px;
+  height: 30px;
+  border: 1px solid rgb(255 224 184 / 18%);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgb(255 179 106 / 88%), rgb(178 83 43 / 88%));
+  color: #120b08;
+  cursor: pointer;
+  font: 700 12px var(--f-body);
+}
+.filter-reset:hover { filter: brightness(1.1); }
+.filter-reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.replay-btn[aria-pressed="true"] {
+  background: rgb(255 255 255 / 7%);
+  color: var(--ink);
+}
+.replay-time {
+  overflow: hidden;
+  color: rgb(246 240 232 / 78%);
+  font: 500 11px var(--f-mono);
+  letter-spacing: .04em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.replay-track {
+  grid-column: 1 / -1;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 9%);
+}
+.replay-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #54a2ff, #ffb36a, #ff5b55);
+  box-shadow: 0 0 18px rgb(255 179 106 / 36%);
+  transition: width .18s linear;
+}
+.side-head {
+  display: none;
+}
+.chips {
+  margin: 0 0 10px;
+}
+.tabs {
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--rule);
+  background: rgb(9 10 16 / 78%);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+}
+.tabs button {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+}
+.tabs button[aria-selected="true"] {
+  border-color: rgb(255 224 184 / 18%);
+  background: rgb(255 255 255 / 6%);
+}
+.pane {
+  position: fixed;
+  z-index: 6;
+  top: 28px;
+  left: auto;
+  right: 28px;
+  bottom: auto;
+  width: min(430px, max(0px, calc(100vw - var(--rail-left) - var(--rail-width) - var(--rail-gap) - 28px)));
+  height: min(468px, calc(100dvh - 56px));
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--float-border);
+  border-radius: 22px;
+  background: var(--float-bg);
+  box-shadow: var(--float-shadow), 0 0 46px rgb(84 162 255 / 9%);
+  backdrop-filter: blur(24px) saturate(1.16);
+  transform: translateX(calc(100% + 48px));
+  transition: transform .42s cubic-bezier(.2,.8,.2,1);
+}
+body.is-drawer-open .pane:not([hidden]) {
+  transform: translateX(0);
+}
+.list {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  overflow: auto;
+}
+.hood-summary {
+  display: block;
+  margin: 14px 14px 8px;
+  padding: 16px;
+  border: 1px solid rgb(255 224 184 / 20%);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 12% 0%, rgb(255 91 85 / 18%), transparent 42%),
+    radial-gradient(circle at 92% 20%, rgb(84 162 255 / 16%), transparent 40%),
+    rgb(255 255 255 / 5%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 18px 45px rgb(0 0 0 / 24%);
+}
+.hood-summary.is-visible { display: block; }
+.hood-summary-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+.drawer-close {
+  border: 1px solid rgb(255 224 184 / 16%);
+  border-radius: 9px;
+  background: rgb(255 255 255 / 5%);
+  color: var(--ink-2);
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font: 500 18px/1 var(--f-mono);
+}
+.drawer-close:hover,
+.drawer-close:focus-visible {
+  color: var(--ink);
+  border-color: rgb(255 179 106 / 58%);
+}
+.hood-summary h2 {
+  margin: 0;
+  color: var(--ink);
+  font: 800 28px/.95 var(--f-display);
+  font-stretch: 82%;
+  letter-spacing: -.045em;
+}
+.hood-summary .hood-kicker {
+  color: #c9a27c;
+  font: 500 10px var(--f-mono);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.hood-summary .hood-count {
+  margin-top: 6px;
+  color: rgb(246 240 232 / 72%);
+  font: 500 12px/1.4 var(--f-mono);
+}
+.hood-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.theme-share {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+.theme-stack {
+  display: flex;
+  height: 16px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 7%);
+}
+.theme-stack i {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+}
+.theme-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.theme-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.theme-legend em {
+  display: block;
+  width: 9px;
+  height: 9px;
+  font-style: normal;
+}
+.theme-legend strong {
+  font-weight: 500;
+}
+.hood-metric {
+  min-width: 0;
+}
+.hood-metric b {
+  display: block;
+  margin-bottom: 5px;
+  color: #c9a27c;
+  font: 500 9px var(--f-mono);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.hood-metric span {
+  display: block;
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.hood-guest {
+  grid-column: 1 / -1;
+  padding-top: 10px;
+  border-top: 1px solid rgb(255 224 184 / 12%);
+}
+.ev {
+  padding: 15px 18px;
+}
+.map-toolbar {
+  left: calc(var(--rail-left) + var(--rail-width) + var(--rail-gap));
+  right: 28px;
+  bottom: 24px;
+  width: auto;
+  transform: none;
+  padding: 12px 14px;
+  overflow: hidden;
+}
+.side .map-toolbar {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  margin: 0 26px 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  overflow: visible;
+  max-width: calc(100% - 52px);
+}
+.side .map-toolbar::before {
+  display: none;
+}
+.side .map-filters {
+  gap: 10px;
+}
+.side .map-filters .filter-label,
+.side .map-filters .label {
+  margin-bottom: 0;
+  font-size: 10px;
+}
+.side .filter-row,
+.side .schedule-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.side .filter-unit {
+  gap: 6px;
+}
+.side .days {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  width: 100%;
+  min-width: 0;
+}
+.side .days button {
+  min-height: 32px;
+  padding: 5px 0;
+  font-size: 12px;
+}
+.side .days button small {
+  font-size: 7.6px;
+}
+.side .schedule-check {
+  justify-self: start;
+  margin: 0;
+}
+.side .map-filters .filter-options {
+  max-height: none;
+}
+.side .filter-options .topic {
+  font-size: 12.5px;
+  padding: 8px 10px;
+}
+.map-filters {
+  gap: 8px;
+}
+.filter-row {
+  gap: 8px 12px;
+}
+.side .topic-type-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.filter-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+.schedule-row {
+  display: grid;
+  grid-template-columns: minmax(300px, 1.3fr) minmax(250px, .9fr) auto;
+  align-items: end;
+}
+.filter-unit .days {
+  width: 100%;
+}
+.days button {
+  padding: 6px 0;
+  font-size: 11px;
+}
+.days button small {
+  font-size: 8.5px;
+}
+.topic {
+  padding: 5px 8px;
+  font-size: 11px;
+}
+.map-filters .filter-options {
+  max-height: 34px;
+  overflow: hidden;
+}
+#domain {
+  min-width: 0;
+  width: 100%;
+  height: 34px;
+  padding: 0 34px 0 10px;
+  border: 1px solid rgb(255 224 184 / 18%);
+  border-radius: 9px;
+  background:
+    linear-gradient(45deg, transparent 50%, #ffcf9f 50%) calc(100% - 16px) 13px / 6px 6px no-repeat,
+    linear-gradient(135deg, #ffcf9f 50%, transparent 50%) calc(100% - 10px) 13px / 6px 6px no-repeat,
+    rgb(255 255 255 / 5%);
+  color: var(--ink-2);
+  font: 500 12px var(--f-body);
+  appearance: none;
+  cursor: pointer;
+}
+#domain:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+#formats {
+  min-width: 0;
+  width: 100%;
+  height: 34px;
+  padding: 0 34px 0 10px;
+  border: 1px solid rgb(255 224 184 / 18%);
+  border-radius: 9px;
+  background:
+    linear-gradient(45deg, transparent 50%, #ffcf9f 50%) calc(100% - 16px) 13px / 6px 6px no-repeat,
+    linear-gradient(135deg, #ffcf9f 50%, transparent 50%) calc(100% - 10px) 13px / 6px 6px no-repeat,
+    rgb(255 255 255 / 5%);
+  color: var(--ink-2);
+  font: 500 12px var(--f-body);
+  appearance: none;
+  cursor: pointer;
+}
+#formats:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.map-stats {
+  top: auto;
+  right: 20px;
+  bottom: 88px;
+  width: min(224px, calc(100vw - 540px));
+  padding: 11px 12px 12px;
+  border-color: var(--float-border);
+  border-radius: 18px;
+  background: var(--float-bg);
+  box-shadow: var(--float-shadow), 0 0 32px rgb(255 179 106 / 9%);
+  backdrop-filter: blur(22px) saturate(1.16);
+}
+.map-stats .count {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.map-stats .offnote {
+  font-size: 10.5px;
+  margin-top: 7px;
+}
+.density-legend {
+  display: grid;
+  gap: 7px;
+}
+.density-legend-title {
+  color: #c9a27c;
+  font: 500 9px var(--f-mono);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.density-legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.density-legend-items span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-2);
+  font: 500 11px var(--f-mono);
+  white-space: nowrap;
+}
+.density-legend-items i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border: 1px solid rgb(255 255 255 / 65%);
+  border-radius: 50%;
+  background: var(--density-color);
+  box-shadow: 0 0 9px var(--density-color);
+}
+body.is-drawer-open .map-stats {
+  opacity: 0;
+  pointer-events: none;
+}
+.map-controls {
+  right: 20px;
+  bottom: 18px;
+  transform: none;
+  padding: 8px 10px;
+  border-color: var(--float-border);
+  border-radius: 16px;
+  background: var(--float-bg-soft);
+  box-shadow: 0 20px 56px rgb(0 0 0 / 52%), inset 0 1px 0 rgb(255 255 255 / 8%);
+  backdrop-filter: blur(18px) saturate(1.12);
+}
+.maplibregl-ctrl-top-right {
+  top: auto;
+  right: 188px;
+  bottom: 18px;
+}
+@media (max-width: 1180px) and (min-width: 901px) {
+  .app {
+    --rail-width: 410px;
+    --rail-gap: 24px;
+  }
+  .side {
+    width: var(--rail-width);
+  }
+  h1 {
+    font-size: 24px;
+  }
+  .title-count {
+    font-size: 1em;
+  }
+  .profile-option {
+    font-size: 11.5px;
+    padding: 6px 8px;
+  }
+  .map-toolbar {
+    left: calc(var(--rail-left) + var(--rail-width) + var(--rail-gap));
+    right: 20px;
+  }
+  .schedule-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .schedule-row .schedule-time {
+    min-width: 0;
+  }
+  .schedule-row > .schedule-check {
+    justify-self: start;
+    margin: 0;
+  }
+  .map-stats {
+    width: min(220px, calc(100vw - 390px));
+  }
+}
+@media (max-width: 900px) and (min-width: 761px) {
+  .pane {
+    position: fixed;
+    left: auto;
+    right: 12px;
+    top: 12px;
+    bottom: auto;
+    width: max(0px, calc(100vw - var(--rail-left) - var(--rail-width) - 24px));
+    min-width: 0;
+  }
+  .map-stats {
+    width: min(220px, calc(100vw - var(--rail-width) - 70px));
+  }
+}
+@media (max-width: 760px) {
+  body::after {
+    display: block;
+    bottom: 10px;
+    width: calc(100vw - 20px);
+    font-size: clamp(28px, 12vw, 58px);
+  }
+  .side,
+  .side-head,
+  .map-toolbar,
+  .map-search,
+  .replay-panel {
+    position: relative;
+    inset: auto;
+    width: auto;
+    transform: none !important;
+    margin: 10px;
+  }
+  .pane {
+    position: fixed;
+    inset: 10px 10px auto auto;
+    width: min(360px, calc(100vw - 20px));
+    margin: 0;
+    display: none;
+    height: min(468px, calc(100dvh - 20px));
+  }
+  body.is-drawer-open .pane:not([hidden]) { display: flex; }
+  .map-toolbar { bottom: auto; left: auto; }
+  .replay-panel {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 9px 10px;
+  }
+  .map-stats {
+    top: 64px;
+    right: 12px;
+    bottom: auto;
+    width: min(220px, calc(100vw - 24px));
+  }
+  .schedule-row { grid-template-columns: 1fr; }
+  .map-filters .filter-options { max-height: none; }
+  #domain { max-height: none; }
+}
+#roleOptions {
+  flex-wrap: nowrap;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+#roleOptions .profile-option {
+  flex: 0 0 auto;
+  padding-inline: 6px;
+  white-space: nowrap;
+}
+@media (min-width: 761px) and (max-width: 1180px) {
+  #roleOptions .profile-option { font-size: 11px; padding-inline: 5px; }
+}
 </style>
 <body>
 <div class="app">
   <div class="map-column">
-    <div class="map-toolbar">
-      <section class="card map-filters" id="card" data-i18n-aria="filters">
-        <div class="filter-row schedule-row">
-          <div class="filter-unit"><div class="filter-label" data-i18n="date"></div><div class="days" id="days" role="group"></div></div>
-          <div class="filter-unit schedule-time">
-            <div class="filter-label" data-i18n="timeRange"></div>
-            <div class="filter-options" id="timeRange" role="group"></div>
-          </div>
-          <label class="check schedule-check"><input type="checkbox" id="openOnly"><span data-i18n="openOnly"></span></label>
-        </div>
-        <div class="filter-row"><div class="filter-unit"><div class="label" data-i18n="topic"></div><div class="topics" id="domain" role="group"></div></div></div>
-        <div class="filter-row">
-          <div class="filter-unit">
-            <div class="filter-label" data-i18n="format"></div>
-            <div class="filter-options" id="formats" role="group"></div>
-          </div>
-        </div>
-      </section>
-    </div>
     <div class="map-stage">
       <div id="map"></div>
+      <div class="side-top map-search">
+        <input class="search" id="q" type="search" autocomplete="off">
+      </div>
+      <div class="replay-panel" id="replayPanel" aria-label="Timeline replay">
+        <button type="button" class="replay-btn" id="mapReplayBtn"></button>
+        <div class="replay-time" id="replayTime"></div>
+        <div class="replay-track" aria-hidden="true"><div class="replay-fill" id="replayFill"></div></div>
+      </div>
       <section class="map-stats" aria-label="Map results">
         <div class="count" id="count" aria-live="polite"></div>
-        <div class="bar" id="bar"></div>
-        <div class="legend" id="legend"></div>
+        <div class="density-legend" aria-label="Events per neighborhood">
+          <span class="density-legend-title">Events per neighborhood</span>
+          <div class="density-legend-items">
+            <span><i style="--density-color: var(--density-low)"></i>1–9</span>
+            <span><i style="--density-color: var(--density-mid)"></i>10–39</span>
+            <span><i style="--density-color: var(--density-high)"></i>40+</span>
+          </div>
+        </div>
         <div class="offnote" id="offnote"></div>
       </section>
       <div class="map-controls">
@@ -280,8 +1282,26 @@ svg.hours { width: 100%; height: auto; display: block; }
         <span class="profile-limit" data-i18n="profileLimit"></span>
       </section>
     </div>
-    <div class="side-top">
-      <input class="search" id="q" type="search" autocomplete="off">
+    <div class="map-toolbar">
+      <section class="card map-filters" id="card" data-i18n-aria="filters">
+        <div class="filter-row schedule-row">
+          <div class="filter-unit"><div class="filter-label" data-i18n="date"></div><div class="days" id="days" role="group"></div></div>
+          <div class="filter-unit schedule-time">
+            <div class="filter-label" data-i18n="timeRange"></div>
+            <div class="filter-options" id="timeRange" role="group"></div>
+          </div>
+        </div>
+        <div class="filter-row topic-type-row">
+          <div class="filter-unit"><div class="label" data-i18n="topic"></div><select id="domain"></select></div>
+          <div class="filter-unit">
+            <div class="filter-label" data-i18n="format"></div>
+            <select id="formats"></select>
+          </div>
+        </div>
+        <div class="filter-actions">
+          <button class="filter-reset" id="profileReset" type="button" data-i18n="resetProfile" data-i18n-aria="resetAllFilters"></button>
+        </div>
+      </section>
     </div>
 
     <div class="side-head">
@@ -291,11 +1311,14 @@ svg.hours { width: 100%; height: auto; display: block; }
         <button type="button" role="tab" id="tab-insights" aria-controls="pane-insights" data-tab="insights" data-i18n="tabInsights"></button>
       </div>
     </div>
-    <div class="pane" id="pane-events" role="tabpanel" aria-labelledby="tab-events">
-      <div class="list" id="list"></div>
-    </div>
+  </aside>
 
-    <div class="pane" id="pane-insights" role="tabpanel" aria-labelledby="tab-insights" hidden>
+  <div class="pane" id="pane-events" role="tabpanel" aria-labelledby="tab-events">
+      <div class="hood-summary" id="hoodSummary"></div>
+      <div class="list" id="list"></div>
+  </div>
+
+  <div class="pane" id="pane-insights" role="tabpanel" aria-labelledby="tab-insights" hidden>
       <div class="insights">
         <div class="facts" id="facts"></div>
         <div class="sec">
@@ -310,12 +1333,13 @@ svg.hours { width: 100%; height: auto; display: block; }
           <p class="hint" data-i18n="hourNote"></p>
         </div>
       </div>
-    </div>
-  </aside>
+  </div>
 </div>
 <div class="tip" id="tip" hidden></div>
 
 <script src="data.js"></script>
+<script src="partiful-links.js"></script>
+<script src="event-meta.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4/dist/maplibre-gl.js"></script>
 <script>
 (() => {
@@ -325,14 +1349,14 @@ svg.hours { width: 100%; height: auto; display: block; }
   const I18N = {
     zh: {
       pageTitle: "SF Tech Week 活动指南", htmlLang: "zh-CN",
-      eyebrow: "SF Tech Week · 2026.10.05—10.11",
-      title: () => "1700+场｜SF Tech Week 2026",
+      eyebrow: "SF Tech Week | Oct 5–11, 2026",
+      title: () => "1700+ events",
       productPromise: "找到真正值得你参加的活动。",
       filters: "筛选", date: "日期", allWeek: "全周", days7: "7 天", days: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
-      topic: "官方主题 · 23", allTopics: "全部主题", openOnly: "只看仍可报名",
+      topic: "官方主题 · 23", allTopics: "全部主题",
       timeRange: "开始时间", allTimes: "全部时间", timeLabels: ["8点前", "8点–12点", "12点–5点", "5点后"],
       format: "活动类型", allFormats: "全部类型",
-      whoLabel: "你的身份", goalLabel: "你想获得什么", profileLimit: "身份最多 2 个 · 目标最多 3 个",
+      whoLabel: "你的身份", goalLabel: "你想获得什么", profileLimit: "身份最多 2 个 · 目标最多 3 个", resetProfile: "重置", resetAllFilters: "重置所有筛选",
       light: "浅色", dark: "深色", auto: "跟随系统", theme: "配色", language: "语言",
       search: "搜索活动名或主办方", tabEvents: "活动", tabInsights: "分析", sideLabel: "活动与分析",
       count: (n, w) => `<span class="num">${n}</span> 场活动${w}`,
@@ -353,17 +1377,19 @@ svg.hours { width: 100%; height: auto; display: block; }
       hourTitle: (s) => `开始时间 · ${s}`, allDay: "全天", play: "▶ 播放一天", pause: "❚❚ 暂停",
       hourNote: "点柱子只看那一小时开始的活动（地图和列表一起变）；4 场 0–6 点开始的时间存疑，不计入。",
       hourAria: (h, c) => `${h}:00 开始 ${c} 场`, hourTip: (h, c) => `<b>${h}:00–${h}:59 开始</b><br>${c} 场`,
+      mapReplay: "Replay", mapPause: "Pause", replayStatic: "全周静态视图", replayEmpty: "当前筛选下没有可播放的定时活动",
+      replayAt: (day, time, at, total) => `${day} · ${time} · ${at}/${total}`,
     },
     en: {
       pageTitle: "SF Tech Week Event Guide", htmlLang: "en",
-      eyebrow: "SF Tech Week · Oct 5–11, 2026",
-      title: () => "1700+场｜SF Tech Week 2026",
+      eyebrow: "SF Tech Week | Oct 5–11, 2026",
+      title: () => "1700+ events",
       productPromise: "Find the events worth your time.",
       filters: "Filters", date: "Date", allWeek: "All", days7: "7 days", days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      topic: "Topics", allTopics: "All topics", openOnly: "Open registration only",
-      timeRange: "Start time", allTimes: "Any time", timeLabels: ["Before 8am", "8am–12pm", "12pm–5pm", "After 5pm"],
+      topic: "Topics", allTopics: "All topics",
+      timeRange: "Start time", allTimes: "Any time", timeLabels: ["BEFORE 8AM", "8AM–12PM", "12PM–5PM", "AFTER 5PM"],
       format: "Type", allFormats: "All types",
-      whoLabel: "Who are you?", goalLabel: "What are you looking for?", profileLimit: "Up to 2 roles · 3 goals",
+      whoLabel: "Who are you?", goalLabel: "What are you looking for?", profileLimit: "Up to 2 roles · 3 goals", resetProfile: "Reset", resetAllFilters: "Reset all filters",
       light: "Light", dark: "Dark", auto: "Match system", theme: "Theme", language: "Language",
       search: "Search event or host", tabEvents: "Events", tabInsights: "Insights", sideLabel: "Events and insights",
       count: (n, w) => `<span class="num">${n}</span> events ${w}`,
@@ -384,24 +1410,28 @@ svg.hours { width: 100%; height: auto; display: block; }
       hourTitle: (s) => `Start time · ${s}`, allDay: "All day", play: "▶ Play a day", pause: "❚❚ Pause",
       hourNote: "Click a bar to filter by start hour (map and list update). 4 events starting 0–6am have uncertain times and are excluded.",
       hourAria: (h, c) => `${c} events start at ${h}:00`, hourTip: (h, c) => `<b>Starts ${h}:00–${h}:59</b><br>${c} events`,
+      mapReplay: "Replay", mapPause: "Pause", replayStatic: "Full-week static view", replayEmpty: "No timed events in this filter",
+      replayAt: (day, time, at, total) => `${day} · ${time} · ${at}/${total}`,
     },
   };
   const DATES = ["10/5", "10/6", "10/7", "10/8", "10/9", "10/10", "10/11"];
-  const STATUS = [["open", "--st-open"], ["waitlist", "--st-wait"], ["sold_out", "--st-full"], ["closed", "--st-closed"], ["unknown", "--st-unknown"]];
-  const STATUS_VAR = Object.fromEntries(STATUS);
+  const DEFAULT_BOUNDS = [[-122.515, 37.708], [-122.357, 37.812]];
   const STYLES = { light: "https://tiles.openfreemap.org/styles/positron", dark: "https://tiles.openfreemap.org/styles/dark" };
   const PAGE = 120, H0 = 6, H1 = 22;
   const TIME_RANGES = [[0, 8], [8, 12], [12, 17], [17, 24]];
   const CORE3 = ["SOMA", "FiDi", "Downtown"];
   const ROLE_DEFS = [
-    ["founder", "Founder", ["founders"]], ["investor", "Investor", ["investors"]],
-    ["engineer", "Engineer", ["engineers"]], ["marketing", "Marketing", ["marketing-comms", "sales-bd"]],
-    ["creator", "Creator", ["creators"]],
+    ["founder", "Founder", ["Founder"]], ["investor", "Investor", ["Investor"]],
+    ["engineer", "Builder", ["Engineer"]], ["pm", "PM", ["PM"]],
+    ["marketing", "Marketing", ["Marketing", "Sales"]],
+    ["hr", "HR", ["HR"]],
+    ["creator", "Creator", ["Creator"]],
   ];
   const GOAL_DEFS = [
-    ["funding", "Funding", ["raise-funding"]], ["customers", "Customers", ["find-customers"]],
-    ["hiring", "Hiring", ["hire-or-find-work"]], ["learning", "Learning", ["learn-build"]],
-    ["networking", "Networking", ["meet-peers", "creator-collaboration"]],
+    ["funding", "Funding", ["Funding"]], ["networking", "Networking", ["Networking"]],
+    ["building", "Building", ["Building"]], ["learning", "Learning", ["Learning"]],
+    ["hiring", "Hiring", ["Hiring"]], ["consumer", "Consumer", ["Consumer"]],
+    ["entertainment", "Entertainment", ["Entertainment"]],
   ];
 
   const $ = (id) => document.getElementById(id);
@@ -420,14 +1450,21 @@ svg.hours { width: 100%; height: auto; display: block; }
   const hoods = TW.hoods;
   const hoodIdx = Object.fromEntries(hoods.map((h, i) => [h.name, i]));
   const searchKey = ev.map((e) => (e[4] + " " + e[5]).toLowerCase());
+  const partifulLinks = window.TW_PARTIFUL_LINKS || {};
+  const eventMeta = window.TW_EVENT_META || {};
+  const eventKey = (e) => `${e[4]}|${e[5]}|${TW.days[e[1]]}|${e[6]}`;
+  const eventUrl = (e) => partifulLinks[`${e[4]}|${e[5]}|${TW.days[e[1]]}|${e[6]}`] || e[8];
   const savedProfile = (() => { try { return JSON.parse(store.get("tw-profile") || "null"); } catch { return null; } })();
-  const savedRoles = savedProfile?.roles?.filter((x) => ROLE_DEFS.some((r) => r[0] === x)) || [];
-  const savedGoals = savedProfile?.goals?.filter((x) => GOAL_DEFS.some((g) => g[0] === x)) || [];
+  const savedRoles = [...new Set((savedProfile?.roles || []).map((x) => x === "sales" ? "marketing" : x))]
+    .filter((x) => ROLE_DEFS.some((r) => r[0] === x));
+  const savedGoals = [...new Set((savedProfile?.goals || []).map((x) => x === "customer" ? "consumer" : x))]
+    .filter((x) => GOAL_DEFS.some((g) => g[0] === x));
   const state = {
     day: -1, domain: -1, format: -1, timeRange: -1, hour: null, openOnly: false, q: "", hood: null, shown: PAGE, includeOff: false,
     tab: "events", playing: null,
     roles: savedRoles, goals: savedGoals,
     lang: "en",
+    replay: { active: false, cutoff: null, index: 0, slots: [], timer: null, empty: false },
   };
   let T = I18N[state.lang];
   const dName = (d) => d;
@@ -436,6 +1473,12 @@ svg.hours { width: 100%; height: auto; display: block; }
   }, 0);
   const roleMasks = Object.fromEntries(ROLE_DEFS.map(([id, label, tags]) => [id, { label, mask: tagMask(TW.audiences || [], tags) }]));
   const goalMasks = Object.fromEntries(GOAL_DEFS.map(([id, label, tags]) => [id, { label, mask: tagMask(TW.intents || [], tags) }]));
+  const eventMinutes = ev.map((e) => {
+    if (e[2] < 0) return null;
+    const m = /^(\d{1,2}):(\d{2})/.exec(e[6]);
+    if (!m) return null;
+    return e[1] * 1440 + (+m[1]) * 60 + (+m[2]);
+  });
 
   function profileMatch(e) {
     const roleHits = state.roles.filter((id) => e[12] & roleMasks[id].mask);
@@ -446,7 +1489,7 @@ svg.hours { width: 100%; height: auto; display: block; }
   }
 
   // ---------- filtering ----------
-  function passes(i, { useDomain = true, useHour = true } = {}) {
+  function passes(i, { useDomain = true, useHour = true, useTimeline = true } = {}) {
     const e = ev[i];
     return (state.day < 0 || e[1] === state.day) &&
       (!useDomain || state.domain < 0 || (e[9] & (1 << state.domain))) &&
@@ -455,7 +1498,8 @@ svg.hours { width: 100%; height: auto; display: block; }
       (!useHour || state.hour === null || e[2] === state.hour) &&
       (!state.openOnly || e[7] === "open") &&
       (!(state.roles.length || state.goals.length) || profileMatch(e).qualified) &&
-      (!state.q || searchKey[i].includes(state.q));
+      (!state.q || searchKey[i].includes(state.q)) &&
+      (!useTimeline || !state.replay.active || (eventMinutes[i] !== null && eventMinutes[i] <= state.replay.cutoff));
   }
 
   // ---------- static text ----------
@@ -466,7 +1510,8 @@ svg.hours { width: 100%; height: auto; display: block; }
     document.querySelectorAll("[data-i18n]").forEach((n) => (n.textContent = T[n.dataset.i18n]));
     document.querySelectorAll("[data-i18n-html]").forEach((n) => (n.innerHTML = T[n.dataset.i18nHtml]));
     document.querySelectorAll("[data-i18n-aria]").forEach((n) => n.setAttribute("aria-label", T[n.dataset.i18nAria]));
-    $("title").innerHTML = '<span class="title-count">1700+场</span>｜SF Tech Week 2026';
+    document.querySelector(".eyebrow").innerHTML = '<span class="hot-count">1700+</span> events | SF Tech Week<span class="event-date">Oct 5–11, 2026</span>';
+    $("title").innerHTML = '<span class="title-count">1700+ events</span>';
     $("q").placeholder = T.search; $("q").setAttribute("aria-label", T.search);
     $("days").setAttribute("aria-label", T.date);
     $("domain").setAttribute("aria-label", T.topic);
@@ -475,6 +1520,7 @@ svg.hours { width: 100%; height: auto; display: block; }
     $("side").setAttribute("aria-label", T.sideLabel);
     $("theme").setAttribute("aria-label", T.theme);
     document.querySelectorAll("#theme button").forEach((b) => { b.title = T[b.dataset.t]; b.setAttribute("aria-label", T[b.dataset.t]); });
+    updateReplayPanel();
     buildDays();
     buildDomainButtons();
     buildTimeRangeButtons();
@@ -487,13 +1533,13 @@ svg.hours { width: 100%; height: auto; display: block; }
   function buildDays() {
     const days = $("days");
     days.textContent = "";
-    [[T.allWeek, T.days7], ...T.days.map((d, i) => [d, DATES[i]])].forEach(([t, s], j) => {
+    T.days.map((d, i) => [d, DATES[i], i]).forEach(([t, s, i]) => {
       const b = document.createElement("button");
       b.type = "button";
       b.innerHTML = `${t}<small>${s}</small>`;
-      b.setAttribute("aria-label", `${t} ${j ? s : ""}`.trim());
-      b.setAttribute("aria-pressed", j - 1 === state.day);
-      b.onclick = () => { state.day = j - 1; update(); };
+      b.setAttribute("aria-label", `${t} ${s}`.trim());
+      b.setAttribute("aria-pressed", i === state.day);
+      b.onclick = () => userFilterUpdate(() => { state.day = state.day === i ? -1 : i; });
       days.appendChild(b);
     });
   }
@@ -501,22 +1547,29 @@ svg.hours { width: 100%; height: auto; display: block; }
   const formatCount = TW.formats.map((f, i) => ev.filter((e) => e[10] & (1 << i)).length);
   const featuredFormats = ["Hackathon", "Networking", "Panel / Fireside Chat", "Experiential"];
   function buildDomainButtons() {
-    $("domain").innerHTML = `<button class="topic" type="button" data-d="-1" aria-pressed="${state.domain < 0}">${T.allTopics}</button>` +
-      TW.themes.map((d, i) => `<button class="topic" type="button" data-d="${i}" aria-pressed="${state.domain === i}" title="${esc(d)}">${esc(dName(d))}<small>${domCount[i]}</small></button>`).join("");
-    $("domain").querySelectorAll("button").forEach((b) => b.onclick = () => { state.domain = +b.dataset.d; update(); });
+    $("domain").innerHTML = `<option value="-1">${T.allTopics}</option>` +
+      TW.themes.map((d, i) => `<option value="${i}">${esc(dName(d))} (${domCount[i]})</option>`).join("");
+    $("domain").value = String(state.domain);
+    $("domain").onchange = (e) => userFilterUpdate(() => { state.domain = +e.target.value; });
   }
   function buildTimeRangeButtons() {
-    $("timeRange").innerHTML = `<button class="topic" type="button" data-r="-1" aria-pressed="${state.timeRange < 0}">${T.allTimes}</button>` +
-      T.timeLabels.map((label, i) => `<button class="topic" type="button" data-r="${i}" aria-pressed="${state.timeRange === i}">${label}</button>`).join("");
-    $("timeRange").querySelectorAll("button").forEach((b) => b.onclick = () => { stopPlay(); state.hour = null; state.timeRange = +b.dataset.r; update(); });
+    $("timeRange").innerHTML = T.timeLabels.map((label, i) => `<button class="topic" type="button" data-r="${i}" aria-pressed="${state.timeRange === i}">${label}</button>`).join("");
+    $("timeRange").querySelectorAll("button").forEach((b) => b.onclick = () => {
+      const next = +b.dataset.r;
+      userFilterUpdate(() => {
+        state.hour = null;
+        state.timeRange = state.timeRange === next ? -1 : next;
+      });
+    });
   }
   function buildFormatButtons() {
-    $("formats").innerHTML = `<button class="topic" type="button" data-f="-1" aria-pressed="${state.format < 0}">${T.allFormats}</button>` +
+    $("formats").innerHTML = `<option value="-1">${T.allFormats}</option>` +
       TW.formats.map((f, i) => [f, i]).sort((a, b) => {
         const ai = featuredFormats.indexOf(a[0]), bi = featuredFormats.indexOf(b[0]);
         return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a[1] - b[1];
-      }).map(([f, i]) => `<button class="topic" type="button" data-f="${i}" aria-pressed="${state.format === i}">${esc(f)}<small>${formatCount[i]}</small></button>`).join("");
-    $("formats").querySelectorAll("button").forEach((b) => b.onclick = () => { state.format = +b.dataset.f; update(); });
+      }).map(([f, i]) => `<option value="${i}">${esc(f)} (${formatCount[i]})</option>`).join("");
+    $("formats").value = String(state.format);
+    $("formats").onchange = (e) => userFilterUpdate(() => { state.format = +e.target.value; });
   }
   function saveProfile() {
     store.set("tw-profile", JSON.stringify({ roles: state.roles, goals: state.goals }));
@@ -531,12 +1584,37 @@ svg.hours { width: 100%; height: auto; display: block; }
       const values = state[b.dataset.kind], max = b.dataset.kind === "roles" ? 2 : 3, id = b.dataset.id;
       const at = values.indexOf(id);
       if (at >= 0) values.splice(at, 1); else { if (values.length >= max) values.shift(); values.push(id); }
-      saveProfile(); renderProfile(); update();
+      saveProfile(); renderProfile(); userFilterUpdate();
     });
   }
-  $("openOnly").onchange = (e) => { state.openOnly = e.target.checked; update(); };
+  $("profileReset").onclick = () => {
+    clearTimeout(qT);
+    userFilterUpdate(() => {
+      state.roles = [];
+      state.goals = [];
+      state.day = -1;
+      state.domain = -1;
+      state.format = -1;
+      state.timeRange = -1;
+      state.hour = null;
+      state.openOnly = false;
+      state.q = "";
+      state.hood = null;
+      state.includeOff = false;
+      $("q").value = "";
+      detailPopup?.remove();
+      syncSelected();
+      saveProfile();
+      renderProfile();
+      setTab("events");
+    });
+    if (map) map.fitBounds(DEFAULT_BOUNDS, { padding: framePadding() });
+  };
   let qT;
-  $("q").oninput = (e) => { clearTimeout(qT); qT = setTimeout(() => { state.q = e.target.value.trim().toLowerCase(); update(); }, 120); };
+  $("q").oninput = (e) => {
+    clearTimeout(qT);
+    qT = setTimeout(() => userFilterUpdate(() => { state.q = e.target.value.trim().toLowerCase(); }), 120);
+  };
   document.querySelectorAll(".tabs button").forEach((b) => (b.onclick = () => setTab(b.dataset.tab)));
   function setTab(tab) {
     state.tab = tab;
@@ -550,7 +1628,7 @@ svg.hours { width: 100%; height: auto; display: block; }
   const themePref = () => {
     const u = params.get("theme");
     if (["light", "dark", "auto"].includes(u) && !themePref.touched) return u;
-    return store.get("tw-theme") || "auto";
+    return store.get("tw-theme") || "dark";
   };
   const isDark = () => {
     const t = document.documentElement.dataset.theme;
@@ -565,7 +1643,6 @@ svg.hours { width: 100%; height: auto; display: block; }
     // diff: false so "style.load" fires again and addLayers() re-adds the bubbles on the new basemap.
     if (map && want !== currentStyle) { currentStyle = want; map.setStyle(want, { diff: false }); }
     else if (map && map.getLayer("bub")) paintBubbles();
-    drawBar();
     drawInsights();
   }
   document.querySelectorAll("#theme button").forEach((b) => (b.onclick = () => { themePref.touched = true; setTheme(b.dataset.t); }));
@@ -598,7 +1675,15 @@ svg.hours { width: 100%; height: auto; display: block; }
   let map = null, currentStyle = null;
   // Keep the map content clear of its small overlays.
   function framePadding() {
-    return { top: 40, bottom: 40, left: 30, right: innerWidth > 1200 ? 390 : 30 };
+    const side = $("side");
+    const railRight = side ? Math.round(side.getBoundingClientRect().right) : 0;
+    const drawerRightPad = document.body.classList.contains("is-drawer-open") ? 510 : 410;
+    return {
+      top: 40,
+      bottom: 40,
+      left: innerWidth > 900 ? railRight + 36 : 30,
+      right: innerWidth > 1200 ? drawerRightPad : 30,
+    };
   }
   if (!window.maplibregl) {
     $("map").insertAdjacentHTML("beforeend", `<div class="loadfail"></div>`);
@@ -608,7 +1693,7 @@ svg.hours { width: 100%; height: auto; display: block; }
     map = new maplibregl.Map({
       container: "map",
       style: currentStyle,
-      bounds: [[-122.515, 37.708], [-122.357, 37.812]], fitBoundsOptions: { padding: framePadding() }, minZoom: 8, maxZoom: 16,
+      bounds: DEFAULT_BOUNDS, fitBoundsOptions: { padding: framePadding() }, minZoom: 8, maxZoom: 16,
       attributionControl: { compact: true },
       dragRotate: false, pitchWithRotate: false,
     });
@@ -641,11 +1726,21 @@ svg.hours { width: 100%; height: auto; display: block; }
   }
 
   const RADIUS = ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 13, 5, 19, 10, 26, 20, 38, 34, 50];
-  const countColor = ["step", ["get", "n"], "#2a78d6", 10, "#f3ca47", 40, "#e34948"];
+  const GLOW_RADIUS = ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 24, 5, 42, 10, 62, 20, 88, 34, 118];
+  const countColor = ["step", ["get", "n"], css("--density-low"), 10, css("--density-mid"), 40, css("--density-high")];
+  const glowColor = ["step", ["get", "n"], "rgba(84,162,255,.38)", 10, "rgba(246,178,60,.42)", 40, "rgba(255,78,100,.50)"];
   function paintBubbles() {
+    if (map.getLayer("bub-glow")) {
+      map.setPaintProperty("bub-glow", "circle-color", glowColor);
+      map.setPaintProperty("bub-glow", "circle-radius", GLOW_RADIUS);
+    }
+    if (map.getLayer("bub-ring")) {
+      map.setPaintProperty("bub-ring", "circle-stroke-color", ["step", ["get", "n"], "rgba(84,162,255,.78)", 10, "rgba(255,210,120,.82)", 40, "rgba(255,86,92,.9)"]);
+      map.setPaintProperty("bub-ring", "circle-radius", ["+", RADIUS, 6]);
+    }
     map.setPaintProperty("bub", "circle-color", countColor);
-    map.setPaintProperty("bub", "circle-stroke-color", isDark() ? "#161b22" : "#ffffff");
-    map.setPaintProperty("bub", "circle-stroke-width", 1.5);
+    map.setPaintProperty("bub", "circle-stroke-color", isDark() ? "rgba(255,236,210,.72)" : "#ffffff");
+    map.setPaintProperty("bub", "circle-stroke-width", 1.9);
     map.setPaintProperty("bub-n", "text-color", ["case", ["<", ["get", "n"], 10], "#ffffff", [">=", ["get", "n"], 40], "#ffffff", "#15201f"]);
   }
 
@@ -662,6 +1757,13 @@ svg.hours { width: 100%; height: auto; display: block; }
       clusterProperties: { n: ["+", ["get", "n"]] },
     });
     map.addSource("hl", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({ id: "bub-glow", type: "circle", source: "hoods", paint: {
+      "circle-radius": GLOW_RADIUS, "circle-color": glowColor, "circle-blur": .72, "circle-opacity": .78,
+    } });
+    map.addLayer({ id: "bub-ring", type: "circle", source: "hoods", paint: {
+      "circle-radius": ["+", RADIUS, 6], "circle-color": "rgba(0,0,0,0)", "circle-stroke-width": 2.2,
+      "circle-stroke-opacity": ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, .32, 20, .78],
+    } });
     map.addLayer({ id: "bub", type: "circle", source: "hoods", paint: { "circle-radius": RADIUS, "circle-opacity": .96 } });
     map.addLayer({ id: "bub-sel", type: "circle", source: "hoods", filter: ["==", ["get", "i"], -1], paint: {
       "circle-radius": ["+", RADIUS, 3], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": accent, "circle-stroke-width": 3.5,
@@ -674,12 +1776,13 @@ svg.hours { width: 100%; height: auto; display: block; }
       "text-size": ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 11.5, 20, 15], "text-allow-overlap": true,
     } });
     map.addLayer({ id: "bub-name", type: "symbol", source: "hoods", filter: ["!", ["has", "point_count"]], minzoom: 12.6, layout: {
-      "text-field": ["get", "name"], "text-font": ["Noto Sans Regular"], "text-size": 11.5,
+      "text-field": ["get", "name"], "text-font": ["Noto Sans Bold"], "text-size": 12,
       "text-variable-anchor": ["top", "bottom", "left", "right"], "text-radial-offset": 2.3, "text-padding": 2,
-    }, paint: { "text-color": css("--ink-2"), "text-halo-color": dark ? "#0e1116" : "#ffffff", "text-halo-width": 1.4 } });
+    }, paint: { "text-color": "#ffffff", "text-halo-width": 0 } });
     paintBubbles();
     syncSelected();
     bindOnce();
+    maybeStartIntroReplay();
   }
 
   let bound = false, detailPopup = null;
@@ -709,31 +1812,37 @@ svg.hours { width: 100%; height: auto; display: block; }
     });
     map.on("mouseleave", "bub", () => { map.getCanvas().style.cursor = ""; popup.remove(); });
     map.on("click", "bub", async (e) => {
+      userControlled = true;
+      stopMapReplay({ clear: true, doUpdate: false });
       const f = e.features[0];
       if (f.properties.cluster) {
         detailPopup.remove();
         const z = await map.getSource("hoods").getClusterExpansionZoom(f.properties.cluster_id);
         map.easeTo({ center: f.geometry.coordinates, zoom: z + 0.2 });
+        update();
       } else {
         const i = f.properties.i;
         popup.remove();
         selectHood(i);
-        if (state.hood !== null) detailPopup.setLngLat(f.geometry.coordinates).setHTML(hoodTopicHtml(i)).addTo(map);
       }
     });
     map.on("click", (e) => {
-      if (detailPopup.isOpen() && !map.queryRenderedFeatures(e.point, { layers: ["bub"] }).length && state.hood !== null) {
+      if (!map.queryRenderedFeatures(e.point, { layers: ["bub"] }).length && state.hood !== null) {
         selectHood(state.hood);
       }
     });
   }
 
   function selectHood(i) {
+    userControlled = true;
+    stopMapReplay({ clear: true, doUpdate: false });
     state.hood = state.hood === i ? null : i;
+    if (state.hood !== null && state.tab !== "events") setTab("events");
     state.shown = PAGE;
     syncSelected();
     if (state.hood === null) detailPopup?.remove();
     redrawSide();
+    if (map) requestAnimationFrame(() => map.resize());
   }
   function syncSelected() {
     if (map && map.getLayer("bub-sel")) map.setFilter("bub-sel", ["==", ["get", "i"], state.hood ?? -1]);
@@ -752,33 +1861,73 @@ svg.hours { width: 100%; height: auto; display: block; }
     if (!h.ll) return state.includeOff;
     return map.getBounds().contains(h.ll);
   }
-  let lastList = null;
-  function drawBar(list) {
-    list = list || lastList;
-    if (!list) return;
-    const c = {};
-    list.forEach((e) => (c[e[7]] = (c[e[7]] || 0) + 1));
-    const tot = list.length || 1;
-    $("bar").innerHTML = STATUS.filter(([k]) => c[k]).map(([k, v]) => `<i style="flex:${c[k] / tot};background:var(${v})"></i>`).join("");
-    $("legend").innerHTML = STATUS.filter(([k]) => c[k]).map(([k, v]) => `<span><i class="dot" style="background:var(${v})"></i>${T.status[k]}<b>${c[k]}</b></span>`).join("");
-  }
   function drawChips() {
     const chips = [];
     if (state.hood !== null) chips.push([T.chipHood(esc(hoods[state.hood].name)), () => selectHood(state.hood)]);
-    if (state.hour !== null) chips.push([T.chipHour(state.hour), () => { stopPlay(); state.hour = null; update(); }]);
+    if (state.hour !== null) chips.push([T.chipHour(state.hour), () => {
+      userControlled = true;
+      stopPlay();
+      stopMapReplay({ clear: true, doUpdate: false });
+      state.hour = null;
+      update();
+    }]);
     $("chips").innerHTML = chips.map(([t], j) => `<span class="chip">${t}<button type="button" data-j="${j}" aria-label="${T.clear}">×</button></span>`).join("");
     $("chips").querySelectorAll("button").forEach((b) => (b.onclick = chips[+b.dataset.j][1]));
+  }
+  function topItems(counter, limit = 3) {
+    return Object.entries(counter).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, limit);
+  }
+  function inc(counter, key) {
+    if (key) counter[key] = (counter[key] || 0) + 1;
+  }
+  const themeColors = ["#54a2ff", "#ffb36a", "#ff5b55", "#8bdcbe", "#c9a7ff", "#f6d45c"];
+  function drawHoodSummary(list) {
+    const box = $("hoodSummary");
+    if (state.hood === null || !list.length) {
+      box.classList.remove("is-visible");
+      box.innerHTML = "";
+      return;
+    }
+    const themes = {};
+    for (const e of list) {
+      TW.themes.forEach((theme, i) => { if (e[9] & (1 << i)) inc(themes, theme); });
+    }
+    const themeRows = topItems(themes, 5);
+    const themeTotal = themeRows.reduce((sum, [, count]) => sum + count, 0) || 1;
+    const themeShare = themeRows.length
+      ? `<div class="theme-share">
+          <div class="theme-stack" aria-label="Top theme share">${themeRows.map(([name, count], i) => {
+            const pct = count / themeTotal * 100;
+            return `<i title="${esc(name)} · ${Math.round(pct)}%" style="width:${pct}%;background:${themeColors[i % themeColors.length]}"></i>`;
+          }).join("")}</div>
+          <div class="theme-legend">${themeRows.map(([name, count], i) => {
+            return `<span><em style="background:${themeColors[i % themeColors.length]}"></em><strong title="${esc(name)}">${esc(name)}</strong></span>`;
+          }).join("")}</div>
+        </div>`
+      : "";
+    box.innerHTML = `
+      <div class="hood-summary-top">
+        <div>
+          <h2>${esc(hoods[state.hood].name)}</h2>
+          <div class="hood-count">${fmt(list.length)} events in current filter</div>
+        </div>
+        <button type="button" class="drawer-close" id="drawerClose" aria-label="${T.clear}">×</button>
+      </div>
+      ${themeShare}`;
+    box.classList.add("is-visible");
+    const close = $("drawerClose");
+    if (close) close.onclick = () => selectHood(state.hood);
   }
   function drawSide() {
     const base = [];
     for (let i = 0; i < ev.length; i++) if (passes(i)) base.push(i);
     const list = base.filter((i) => inView(ev[i])).map((i) => ev[i])
       .sort((a, b) => a[1] - b[1] || (a[2] < 0) - (b[2] < 0) || a[6].localeCompare(b[6]) || a[4].localeCompare(b[4]));
-    lastList = list;
+    document.body.classList.toggle("is-drawer-open", state.hood !== null);
     const where = state.hood !== null ? T.inHood(esc(hoods[state.hood].name)) : !map ? "" : state.includeOff ? T.inViewOff : T.inView;
     $("count").innerHTML = T.count(fmt(list.length), where);
     drawChips();
-    drawBar(list);
+    drawHoodSummary(list);
     const off = base.filter((i) => !hoods[ev[i][0]].ll).length;
     $("offnote").innerHTML = state.hood === null && map && off
       ? (state.includeOff ? `${T.offIn(off)}<button type="button" id="offBtn">${T.offBtnOut}</button>`
@@ -789,16 +1938,16 @@ svg.hours { width: 100%; height: auto; display: block; }
 
     const box = $("list");
     if (!list.length) { box.innerHTML = `<div class="empty">${T.empty}</div>`; return; }
-    box.innerHTML = list.slice(0, state.shown).map((e) => `<a class="ev" href="${esc(e[8])}" target="_blank" rel="noopener" data-h="${e[0]}">
+    box.innerHTML = list.slice(0, state.shown).map((e) => `<a class="ev${e[2] < 0 ? " has-note" : ""}" href="${esc(eventUrl(e))}" target="_blank" rel="noopener" data-h="${e[0]}">
         <div class="name">${esc(e[4])}</div>
         <div class="tm"><b>${e[6]}</b><small>${T.days[e[1]]} ${DATES[e[1]]}</small></div>
         <div class="sub">${esc(e[5])} · ${esc(hoods[e[0]].name)}</div>
-        <div class="st"><i class="dot" style="background:var(${STATUS_VAR[e[7]] || "--st-unknown"})"></i>${T.status[e[7]] || T.status.unknown}${e[2] < 0 ? `<span class="d">· ${T.suspect}</span>` : ""}</div>
+        ${e[2] < 0 ? `<div class="st"><span class="d">${T.suspect}</span></div>` : ""}
       </a>`).join("") + (list.length > state.shown ? `<div class="more" id="more">${T.moreRows(state.shown, fmt(list.length))}</div>` : "");
     const more = $("more");
     if (more) new IntersectionObserver((ents, obs) => {
-      if (ents[0].isIntersecting) { obs.disconnect(); state.shown += PAGE; const top = $("side").scrollTop; drawSide(); $("side").scrollTop = top; }
-    }, { root: $("side") }).observe(more);
+      if (ents[0].isIntersecting) { obs.disconnect(); state.shown += PAGE; const top = $("list").scrollTop; drawSide(); $("list").scrollTop = top; }
+    }, { root: $("list") }).observe(more);
   }
   $("list").addEventListener("pointerover", (e) => { const a = e.target.closest(".ev"); if (a) highlight(+a.dataset.h); });
   $("list").addEventListener("pointerleave", () => highlight(null));
@@ -845,7 +1994,14 @@ svg.hours { width: 100%; height: auto; display: block; }
         class: "hbar" + (state.hour === null || state.hour === h ? "" : " dim"), tabindex: 0, role: "button", "aria-label": T.hourAria(h, c),
       }, hs);
       const hit = svgEl("rect", { x: x0 + j * bw, y: y1, width: bw, height: y0 - y1, fill: "transparent", style: "cursor:pointer" }, hs);
-      const pick = () => { stopPlay(); state.timeRange = -1; state.hour = state.hour === h ? null : h; update(); };
+      const pick = () => {
+        userControlled = true;
+        stopPlay();
+        stopMapReplay({ clear: true, doUpdate: false });
+        state.timeRange = -1;
+        state.hour = state.hour === h ? null : h;
+        update();
+      };
       [r, hit].forEach((n) => {
         n.addEventListener("click", pick);
         n.addEventListener("pointermove", (evt) => showTip(evt, T.hourTip(h, fmt(c))));
@@ -867,6 +2023,8 @@ svg.hours { width: 100%; height: auto; display: block; }
   }
   playBtn.onclick = () => {
     if (state.playing) { stopPlay(); return; }
+    userControlled = true;
+    stopMapReplay({ clear: true, doUpdate: false });
     state.timeRange = -1;
     state.hour = state.hour === null || state.hour >= H1 ? H0 : state.hour;
     playBtn.textContent = T.pause;
@@ -876,19 +2034,122 @@ svg.hours { width: 100%; height: auto; display: block; }
       state.hour++; update();
     }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 1400 : 800);
   };
-  $("allday").onclick = () => { stopPlay(); state.hour = null; state.timeRange = -1; update(); };
+  $("allday").onclick = () => {
+    userControlled = true;
+    stopPlay();
+    stopMapReplay({ clear: true, doUpdate: false });
+    state.hour = null;
+    state.timeRange = -1;
+    update();
+  };
+
+  // ---------- map replay ----------
+  let userControlled = false, introReplayStarted = false;
+  const replayBtn = $("mapReplayBtn");
+  const replayTime = $("replayTime");
+  const replayFill = $("replayFill");
+
+  function minuteLabel(minute) {
+    if (minute === null || minute === undefined) return T.replayStatic;
+    const day = Math.floor(minute / 1440);
+    const mins = minute % 1440;
+    const h = String(Math.floor(mins / 60)).padStart(2, "0");
+    const m = String(mins % 60).padStart(2, "0");
+    return { day: DATES[day] || "", time: `${h}:${m}` };
+  }
+  function replaySourceSlots() {
+    return [...new Set(ev.map((_, i) => (passes(i, { useTimeline: false }) ? eventMinutes[i] : null))
+      .filter((m) => m !== null))].sort((a, b) => a - b);
+  }
+  function updateReplayPanel() {
+    if (!replayBtn || !replayTime || !replayFill) return;
+    replayBtn.textContent = state.replay.active ? T.mapPause : T.mapReplay;
+    replayBtn.setAttribute("aria-pressed", state.replay.active ? "true" : "false");
+    if (state.replay.active) {
+      const slot = minuteLabel(state.replay.cutoff);
+      replayTime.textContent = T.replayAt(slot.day, slot.time, state.replay.index + 1, state.replay.slots.length);
+      const pct = state.replay.slots.length <= 1 ? 100 : state.replay.index / (state.replay.slots.length - 1) * 100;
+      replayFill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+    } else {
+      replayTime.textContent = state.replay.empty ? T.replayEmpty : T.replayStatic;
+      replayFill.style.width = state.replay.empty ? "0%" : "100%";
+    }
+  }
+  function stopMapReplay({ clear = true, doUpdate = false } = {}) {
+    if (state.replay.timer) clearInterval(state.replay.timer);
+    state.replay.timer = null;
+    state.replay.active = false;
+    if (clear) {
+      state.replay.cutoff = null;
+      state.replay.index = 0;
+      state.replay.slots = [];
+    }
+    updateReplayPanel();
+    if (doUpdate) update();
+  }
+  function finishMapReplay() {
+    stopMapReplay({ clear: true, doUpdate: true });
+  }
+  function replayStep() {
+    if (!state.replay.active) return;
+    if (state.replay.index >= state.replay.slots.length - 1) {
+      finishMapReplay();
+      return;
+    }
+    state.replay.index++;
+    state.replay.cutoff = state.replay.slots[state.replay.index];
+    update();
+  }
+  function startMapReplay({ auto = false } = {}) {
+    stopPlay();
+    stopMapReplay({ clear: true, doUpdate: false });
+    const slots = replaySourceSlots();
+    state.replay.empty = !slots.length;
+    if (!slots.length) { updateReplayPanel(); return; }
+    state.replay.active = true;
+    state.replay.slots = slots;
+    state.replay.index = 0;
+    state.replay.cutoff = slots[0];
+    const duration = auto ? 24000 : 18000;
+    const interval = matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? 900
+      : Math.max(90, Math.min(420, Math.round(duration / Math.max(1, slots.length))));
+    update();
+    state.replay.timer = setInterval(replayStep, interval);
+  }
+  function userFilterUpdate(mutator) {
+    userControlled = true;
+    stopPlay();
+    stopMapReplay({ clear: true, doUpdate: false });
+    if (mutator) mutator();
+    state.replay.empty = false;
+    update();
+  }
+  function maybeStartIntroReplay() {
+    if (introReplayStarted || userControlled || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    introReplayStarted = true;
+    setTimeout(() => {
+      if (!userControlled && map && map.getSource("hoods")) startMapReplay({ auto: true });
+    }, 450);
+  }
+  replayBtn.onclick = () => {
+    userControlled = true;
+    if (state.replay.active) stopMapReplay({ clear: true, doUpdate: true });
+    else startMapReplay();
+  };
 
   // ---------- update loop ----------
   function redrawSide() { drawSide(); if (state.tab === "insights") drawInsights(); }
   function update() {
-    document.querySelectorAll("#days button").forEach((b, j) => b.setAttribute("aria-pressed", j - 1 === state.day));
-    document.querySelectorAll("#domain button").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.d === state.domain));
+    document.querySelectorAll("#days button").forEach((b, j) => b.setAttribute("aria-pressed", j === state.day));
+    $("domain").value = String(state.domain);
     document.querySelectorAll("#timeRange button").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.r === state.timeRange));
-    document.querySelectorAll("#formats button").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.f === state.format));
+    $("formats").value = String(state.format);
     state.shown = PAGE;
     stats = hoodStats();
     if (map && map.getSource("hoods")) { map.getSource("hoods").setData(hoodGeoJSON()); paintBubbles(); }
     if (detailPopup?.isOpen() && state.hood !== null) detailPopup.setHTML(hoodTopicHtml(state.hood));
+    updateReplayPanel();
     redrawSide();
   }
   stats = hoodStats();

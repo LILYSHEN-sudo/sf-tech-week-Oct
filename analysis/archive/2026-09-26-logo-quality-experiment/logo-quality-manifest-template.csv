@@ -1,0 +1,5 @@
+host_name,current_icon_file,current_icon_source,current_icon_type,displayable_on_map,needs_logo_replacement,replacement_query,official_logo_source_url,replacement_icon_file,processed_icon_file,confidence,needs_manual_review,review_status,notes
+Google for Startups,,,,,,,,,,,,pending,
+Anthropic,,,,,,,,,,,,pending,
+OpenAI,,,,,,,,,,,,pending,
+Tech Week,,,,tech_week_default,false,true,,,,low,true,pending,Default Tech Week logo should not be used as a host logo on the map.
