@@ -2,6 +2,8 @@
 
 [Open the interactive map](https://lilyshen-sudo.github.io/sf-tech-week-Oct/)
 
+https://sf-tech-week-oct-web.vercel.app/
+
 **1,700+ events, one week, and no single venue.** This project turns a snapshot of the official SF Tech Week calendar into a neighborhood-first event map with inferred audience and intent filters, public Partiful links, visible guest-count signals, and neighborhood-level density storytelling.
 
 The site is a historical snapshot, not a live registration feed. Event locations are based on host-supplied neighborhood labels, so map circles represent approximate neighborhood centers rather than venue-level addresses.
@@ -111,53 +113,6 @@ Location model:
 - San Francisco neighborhoods use hand-placed approximate centers.
 - Bay Area labels such as Palo Alto or East Bay use indicative coordinates.
 - Virtual and unknown locations are kept in the list/stat count but are not mapped unless explicitly added through the stats card.
-
----
-
-## Audience And Intent Workflow
-
-Audience and intent are the current data-design focus of the project.
-
-Current labels:
-
-```text
-audience_inferred:
-  Founder, Investor, Engineer, Marketing, Sales, HR, Creator, PM
-
-intent_inferred:
-  Funding, Networking, Building, Learning, Consumer, Hiring, Entertainment
-```
-
-Supporting files:
-
-```text
-analysis/audience-intent-analysis/
-  category-label-method.md
-  audience-evidence-audit.json
-  audience-review-queue.json
-  audience-unlabeled.json
-  audience-manual-overrides.json
-  audience-second-pass-summary.md
-  intent-missing.json
-
-scripts/
-  infer_event_intents.py
-  infer_audience_from_name.py
-  add_audience_from_tracks.py
-  add_audience_from_description.py
-  add_audience_from_requested_fields.py
-  add_creator_audience_from_theme.py
-  audit_event_audiences.py
-```
-
-The practical approach is hybrid:
-
-- Use explicit evidence first: tracks, themes, event titles, descriptions, and requested fields.
-- Keep low-confidence audience cases in review queues instead of forcing labels.
-- Allow multiple labels when an event genuinely spans audiences or intents.
-- Keep `general` out of the web filter masks, so the user-facing filters remain meaningful.
-
----
 
 ## Data Flow
 
