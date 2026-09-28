@@ -599,15 +599,24 @@ body::after {
   font-size: 17px;
   color: rgb(255 198 142 / 74%);
   letter-spacing: .08em;
-  white-space: nowrap;
+  white-space: normal;
 }
 .eyebrow .hot-count {
   display: inline-block;
   color: #ff5b55;
-  font: 800 2em/0.9 var(--f-display);
+  font: 800 1.65em/0.9 var(--f-display);
   letter-spacing: -.06em;
   text-shadow: 0 0 28px rgb(255 55 55 / 42%);
   vertical-align: -.08em;
+}
+.eyebrow .event-brand {
+  display: inline-block;
+  color: #ff5b55;
+  font: 800 1.65em/0.9 var(--f-display);
+  letter-spacing: -.06em;
+  word-spacing: .25em;
+  text-shadow: 0 0 28px rgb(255 55 55 / 42%);
+  white-space: nowrap;
 }
 .eyebrow .event-date {
   display: block;
@@ -1510,7 +1519,7 @@ body.is-drawer-open .map-stats {
     document.querySelectorAll("[data-i18n]").forEach((n) => (n.textContent = T[n.dataset.i18n]));
     document.querySelectorAll("[data-i18n-html]").forEach((n) => (n.innerHTML = T[n.dataset.i18nHtml]));
     document.querySelectorAll("[data-i18n-aria]").forEach((n) => n.setAttribute("aria-label", T[n.dataset.i18nAria]));
-    document.querySelector(".eyebrow").innerHTML = '<span class="hot-count">1700+</span> events | SF Tech Week<span class="event-date">Oct 5–11, 2026</span>';
+    document.querySelector(".eyebrow").innerHTML = '<span class="hot-count">1700+</span> events | <span class="event-brand">SF Tech Week</span><span class="event-date">Oct 5–11, 2026</span>';
     $("title").innerHTML = '<span class="title-count">1700+ events</span>';
     $("q").placeholder = T.search; $("q").setAttribute("aria-label", T.search);
     $("days").setAttribute("aria-label", T.date);
