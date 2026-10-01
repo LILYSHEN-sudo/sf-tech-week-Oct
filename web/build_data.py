@@ -1,7 +1,7 @@
 """Build web/data.js for the map page.
 
 Inputs : ../data/00-ready-to-use-data/sf-tech-week-events-master-slim.json
-         ../data/source-data/sf-analysis-neighborhoods.geojson     (DataSF "Analysis Neighborhoods")
+         ../data/source-data/01-sf-event-data-1710/raw/sf-analysis-neighborhoods.geojson
 Output : ./data.js  (window.TW = {...})
 
     python3 build_data.py
@@ -44,7 +44,7 @@ CENTERS = {
     "Panhandle": (-122.4470, 37.7725), "Haight Ashbury": (-122.4481, 37.7692), "Lower Haight": (-122.4310, 37.7720),
 }
 
-# Bay Area labels outside SF, only used by the tiled map (map.html). "East Bay" is a region label with no city:
+# Bay Area labels outside SF. "East Bay" is a region label with no city:
 # it is pinned to downtown Oakland and the page says the position is indicative.
 OUTSIDE = {
     "Palo Alto": (-122.1430, 37.4419), "Stanford": (-122.1697, 37.4275), "Mountain View": (-122.0838, 37.3861),
@@ -84,6 +84,15 @@ def bitmask(universe, values):
 def clean_status(value):
     value = (value or "").strip()
     return value or "unknown"
+
+
+def clean_int(value):
+    if value in (None, ""):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def rdp(points, eps):
@@ -179,11 +188,12 @@ def main():
         audiences = {a for a in split_tags(r.get("audience_inferred")) if a != "general"}
         amask = bitmask(AUDIENCES, audiences)
         url = r.get("partiful_url") or r.get("techweek_go_event_url") or ""
+        guest_count = clean_int(r.get("public_guest_count_0930"))
         # compact row: [hood, day, hour, domainMask, name, host, time, status, url,
-        #               themeMask, formatMask, intentMask, audienceMask]
+        #               themeMask, formatMask, intentMask, audienceMask, publicGuestCount0930]
         events.append([hidx[r["_hood_clean"]], DAYS.index(r["date"]), hour, 0,
                        r.get("name") or "", r.get("primary_host") or "", r.get("time") or "", clean_status(r.get("registration_status")), url,
-                       tmask, fmask, imask, amask])
+                       tmask, fmask, imask, amask, guest_count])
 
     payload = {
         "generated": date.today().isoformat(), "source": "data/00-ready-to-use-data/sf-tech-week-events-master-slim.json",

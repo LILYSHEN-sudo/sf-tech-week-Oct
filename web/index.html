@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SF Tech Week Map</title>
 <!--
-  可缩放的街道底图版活动地图（MapLibre + OpenFreeMap，无需 key）。与 index.html 共用 data.js。
+  可缩放的街道底图版活动地图（MapLibre + OpenFreeMap，无需 key）。活动数据来自 data.js。
   地图标记 = 街区标签的中心点（官网没有具体地址），缩小时相邻街区自动合并。
   左侧整合筛选、活动和分析；地图上的数量决定标记大小和颜色。
   URL 参数：?theme=light|dark|auto
@@ -553,6 +553,7 @@ body::after {
   --rail-left: 38px;
   --rail-width: min(480px, calc(100vw - 76px));
   --rail-gap: 24px;
+  --map-top-width: min(470px, max(0px, calc(100vw - var(--rail-left) - var(--rail-width) - var(--rail-gap) - 28px)));
   --float-border: rgb(255 224 184 / 20%);
   --float-border-hot: rgb(255 179 106 / 30%);
   --float-bg: linear-gradient(145deg, rgb(15 16 25 / 90%), rgb(9 10 17 / 72%));
@@ -672,37 +673,46 @@ h1 {
   background: rgb(6 7 12 / 58%);
   box-shadow: 0 16px 42px rgb(0 0 0 / 30%), inset 0 1px 0 rgb(255 255 255 / 6%);
 }
-.map-search {
+.map-top-controls {
   position: fixed;
   z-index: 5;
   top: 28px;
   left: calc(var(--rail-left) + var(--rail-width) + var(--rail-gap));
-  width: min(420px, max(0px, calc(100vw - var(--rail-left) - var(--rail-width) - var(--rail-gap) - 430px - 44px)));
+  width: var(--map-top-width);
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--float-border);
+  border-radius: 20px;
+  background: var(--float-bg);
+  box-shadow: var(--float-shadow), 0 0 34px rgb(84 162 255 / 10%);
+  backdrop-filter: blur(22px) saturate(1.18);
+  container-type: inline-size;
+}
+body.is-drawer-open .map-top-controls {
+  width: min(470px, max(0px, calc(100vw - var(--rail-left) - var(--rail-width) - var(--rail-gap) - 430px - 44px)));
+}
+.map-search {
   min-width: 0;
   padding: 0;
 }
 .map-search .search {
   height: 42px;
-  background: rgb(9 10 16 / 62%);
-  backdrop-filter: blur(18px) saturate(1.08);
+  background: rgb(9 10 16 / 45%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
+}
+.map-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
 }
 .replay-panel {
-  position: fixed;
-  z-index: 5;
-  top: 82px;
-  left: calc(var(--rail-left) + var(--rail-width) + var(--rail-gap));
-  width: min(420px, max(0px, calc(100vw - var(--rail-left) - var(--rail-width) - var(--rail-gap) - 430px - 44px)));
-  min-width: 0;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 8px 12px;
+  display: flex;
   align-items: center;
-  padding: 10px 12px;
-  border: 1px solid var(--float-border);
-  border-radius: 22px;
-  background: var(--float-bg);
-  box-shadow: var(--float-shadow), 0 0 34px rgb(84 162 255 / 10%);
-  backdrop-filter: blur(22px) saturate(1.18);
+  gap: 12px;
+  min-width: 0;
 }
 .replay-btn, .filter-reset {
   min-width: 76px;
@@ -728,8 +738,35 @@ h1 {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.view-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.view-toggle-label {
+  color: #c9a27c;
+  font: 500 9px var(--f-mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.view-toggle button {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgb(255 224 184 / 18%);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 5%);
+  color: var(--ink-2);
+  cursor: pointer;
+  font: 700 10.5px var(--f-body);
+}
+.view-toggle button[aria-pressed="true"] {
+  border-color: rgb(255 179 106 / 55%);
+  background: linear-gradient(180deg, rgb(255 179 106 / 88%), rgb(178 83 43 / 86%));
+  color: #120b08;
+}
 .replay-track {
-  grid-column: 1 / -1;
   height: 4px;
   overflow: hidden;
   border-radius: 999px;
@@ -742,6 +779,10 @@ h1 {
   background: linear-gradient(90deg, #54a2ff, #ffb36a, #ff5b55);
   box-shadow: 0 0 18px rgb(255 179 106 / 36%);
   transition: width .18s linear;
+}
+@container (max-width: 380px) {
+  .map-actions { grid-template-columns: minmax(0, 1fr); }
+  .view-toggle { justify-self: start; }
 }
 .side-head {
   display: none;
@@ -846,6 +887,64 @@ body.is-drawer-open .pane:not([hidden]) {
   margin-top: 6px;
   color: rgb(246 240 232 / 72%);
   font: 500 12px/1.4 var(--f-mono);
+}
+.guest-signal {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(255 224 184 / 13%);
+}
+.guest-signal b {
+  color: #c9a27c;
+  font: 500 9px var(--f-mono);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.guest-signal span {
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 1.35;
+}
+.top-events {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+.top-events-title {
+  color: #c9a27c;
+  font: 500 9px var(--f-mono);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.top-event {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  color: inherit;
+  text-decoration: none;
+}
+.top-event strong {
+  overflow: hidden;
+  color: var(--ink);
+  font: 700 12.5px/1.25 var(--f-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.top-event span {
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.top-event b {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: #ffd0a2;
+  font: 800 16px/1 var(--f-display);
+  font-variant-numeric: tabular-nums;
 }
 .hood-grid {
   display: grid;
@@ -1181,7 +1280,14 @@ body.is-drawer-open .map-stats {
     width: min(220px, calc(100vw - var(--rail-width) - 70px));
   }
 }
+@media (max-width: 1179px) and (min-width: 761px) {
+  body.is-drawer-open .map-top-controls { display: none; }
+}
 @media (max-width: 760px) {
+  .app { display: block; height: auto; min-height: 100dvh; padding: 0; }
+  .map-column { display: block; height: 58dvh; }
+  .map-stage { height: 58dvh; }
+  #map { position: absolute; inset: 0; height: auto; }
   body::after {
     display: block;
     bottom: 10px;
@@ -1191,8 +1297,7 @@ body.is-drawer-open .map-stats {
   .side,
   .side-head,
   .map-toolbar,
-  .map-search,
-  .replay-panel {
+  .map-top-controls {
     position: relative;
     inset: auto;
     width: auto;
@@ -1209,12 +1314,17 @@ body.is-drawer-open .map-stats {
   }
   body.is-drawer-open .pane:not([hidden]) { display: flex; }
   .map-toolbar { bottom: auto; left: auto; }
-  .replay-panel {
-    grid-template-columns: auto minmax(0, 1fr);
-    padding: 9px 10px;
+  .map-top-controls,
+  body.is-drawer-open .map-top-controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: calc(100% - 20px);
+    margin: 0;
+    padding: 10px;
   }
   .map-stats {
-    top: 64px;
+    top: 184px;
     right: 12px;
     bottom: auto;
     width: min(220px, calc(100vw - 24px));
@@ -1243,19 +1353,28 @@ body.is-drawer-open .map-stats {
   <div class="map-column">
     <div class="map-stage">
       <div id="map"></div>
-      <div class="side-top map-search">
-        <input class="search" id="q" type="search" autocomplete="off">
-      </div>
-      <div class="replay-panel" id="replayPanel" aria-label="Timeline replay">
-        <button type="button" class="replay-btn" id="mapReplayBtn"></button>
-        <div class="replay-time" id="replayTime"></div>
+      <div class="map-top-controls">
+        <div class="map-search">
+          <input class="search" id="q" type="search" autocomplete="off">
+        </div>
+        <div class="map-actions">
+          <div class="replay-panel" id="replayPanel" aria-label="Timeline replay">
+            <button type="button" class="replay-btn" id="mapReplayBtn"></button>
+            <div class="replay-time" id="replayTime"></div>
+          </div>
+          <div class="view-toggle" id="viewToggle" aria-label="View by">
+            <span class="view-toggle-label">View by</span>
+            <button type="button" data-view="events" aria-pressed="true">Events</button>
+            <button type="button" data-view="guests" aria-pressed="false">Guest</button>
+          </div>
+        </div>
         <div class="replay-track" aria-hidden="true"><div class="replay-fill" id="replayFill"></div></div>
       </div>
       <section class="map-stats" aria-label="Map results">
         <div class="count" id="count" aria-live="polite"></div>
-        <div class="density-legend" aria-label="Events per neighborhood">
-          <span class="density-legend-title">Events per neighborhood</span>
-          <div class="density-legend-items">
+        <div class="density-legend" id="densityLegend" aria-label="Events per neighborhood">
+          <span class="density-legend-title" id="densityLegendTitle">Events per neighborhood</span>
+          <div class="density-legend-items" id="densityLegendItems">
             <span><i style="--density-color: var(--density-low)"></i>1–9</span>
             <span><i style="--density-color: var(--density-mid)"></i>10–39</span>
             <span><i style="--density-color: var(--density-high)"></i>40+</span>
@@ -1348,7 +1467,6 @@ body.is-drawer-open .map-stats {
 
 <script src="data.js"></script>
 <script src="partiful-links.js"></script>
-<script src="event-meta.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4/dist/maplibre-gl.js"></script>
 <script>
 (() => {
@@ -1388,6 +1506,11 @@ body.is-drawer-open .map-stats {
       hourAria: (h, c) => `${h}:00 开始 ${c} 场`, hourTip: (h, c) => `<b>${h}:00–${h}:59 开始</b><br>${c} 场`,
       mapReplay: "Replay", mapPause: "Pause", replayStatic: "全周静态视图", replayEmpty: "当前筛选下没有可播放的定时活动",
       replayAt: (day, time, at, total) => `${day} · ${time} · ${at}/${total}`,
+      viewBy: "View by", viewEvents: "Events", viewGuests: "Guest",
+      eventsPerNeighborhood: "Events per neighborhood", guestsPerNeighborhood: "Guest signal per neighborhood",
+      guestCount: (n, w) => `<span class="num">${n}</span> guest signal${w}`,
+      guestSignalTitle: "Guest signal", guestSignal: (n, c) => `${n} event-level public guests across ${c} events with visible counts`,
+      topEventsTitle: "Top events by guest signal", noGuestSignal: "No public guest signal available.",
     },
     en: {
       pageTitle: "SF Tech Week Event Guide", htmlLang: "en",
@@ -1421,6 +1544,11 @@ body.is-drawer-open .map-stats {
       hourAria: (h, c) => `${c} events start at ${h}:00`, hourTip: (h, c) => `<b>Starts ${h}:00–${h}:59</b><br>${c} events`,
       mapReplay: "Replay", mapPause: "Pause", replayStatic: "Full-week static view", replayEmpty: "No timed events in this filter",
       replayAt: (day, time, at, total) => `${day} · ${time} · ${at}/${total}`,
+      viewBy: "View by", viewEvents: "Events", viewGuests: "Guest",
+      eventsPerNeighborhood: "Events per neighborhood", guestsPerNeighborhood: "Guest signal per neighborhood",
+      guestCount: (n, w) => `<span class="num">${n}</span> guest signal ${w}`,
+      guestSignalTitle: "Guest signal", guestSignal: (n, c) => `${n} event-level public guests across ${c} events with visible counts`,
+      topEventsTitle: "Top events by guest signal", noGuestSignal: "No public guest signal available.",
     },
   };
   const DATES = ["10/5", "10/6", "10/7", "10/8", "10/9", "10/10", "10/11"];
@@ -1446,6 +1574,7 @@ body.is-drawer-open .map-stats {
   const $ = (id) => document.getElementById(id);
   const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const fmt = (n) => n.toLocaleString("en-US");
+  const compact = (n) => n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "")}k` : String(n);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const params = new URLSearchParams(location.search);
   const store = {
@@ -1454,13 +1583,12 @@ body.is-drawer-open .map-stats {
   };
 
   // events: [hood, day, hour, groupedDomainMask, name, host, time, status, url,
-  //          officialThemeMask, formatMask, intentMask, audienceMask]
+  //          officialThemeMask, formatMask, intentMask, audienceMask, publicGuestCount0930]
   const ev = TW.events;
   const hoods = TW.hoods;
   const hoodIdx = Object.fromEntries(hoods.map((h, i) => [h.name, i]));
   const searchKey = ev.map((e) => (e[4] + " " + e[5]).toLowerCase());
   const partifulLinks = window.TW_PARTIFUL_LINKS || {};
-  const eventMeta = window.TW_EVENT_META || {};
   const eventKey = (e) => `${e[4]}|${e[5]}|${TW.days[e[1]]}|${e[6]}`;
   const eventUrl = (e) => partifulLinks[`${e[4]}|${e[5]}|${TW.days[e[1]]}|${e[6]}`] || e[8];
   const savedProfile = (() => { try { return JSON.parse(store.get("tw-profile") || "null"); } catch { return null; } })();
@@ -1470,7 +1598,7 @@ body.is-drawer-open .map-stats {
     .filter((x) => GOAL_DEFS.some((g) => g[0] === x));
   const state = {
     day: -1, domain: -1, format: -1, timeRange: -1, hour: null, openOnly: false, q: "", hood: null, shown: PAGE, includeOff: false,
-    tab: "events", playing: null,
+    tab: "events", playing: null, viewBy: "events",
     roles: savedRoles, goals: savedGoals,
     lang: "en",
     replay: { active: false, cutoff: null, index: 0, slots: [], timer: null, empty: false },
@@ -1482,6 +1610,25 @@ body.is-drawer-open .map-stats {
   }, 0);
   const roleMasks = Object.fromEntries(ROLE_DEFS.map(([id, label, tags]) => [id, { label, mask: tagMask(TW.audiences || [], tags) }]));
   const goalMasks = Object.fromEntries(GOAL_DEFS.map(([id, label, tags]) => [id, { label, mask: tagMask(TW.intents || [], tags) }]));
+  const guestCount = (e) => Number.isFinite(e[13]) ? e[13] : 0;
+  const hasGuestCount = (e) => Number.isFinite(e[13]);
+  const metricValue = (eventCount, guestSum) => state.viewBy === "guests" ? guestSum : eventCount;
+  const metricLabel = (n) => state.viewBy === "guests" ? compact(n) : fmt(n);
+  function metricLegendRows() {
+    return state.viewBy === "guests"
+      ? [["1–499", "var(--density-low)"], ["500–1,999", "var(--density-mid)"], ["2,000+", "var(--density-high)"]]
+      : [["1–9", "var(--density-low)"], ["10–39", "var(--density-mid)"], ["40+", "var(--density-high)"]];
+  }
+  function updateMetricUI() {
+    const isGuests = state.viewBy === "guests";
+    const legend = $("densityLegend");
+    const title = $("densityLegendTitle");
+    const items = $("densityLegendItems");
+    if (legend) legend.setAttribute("aria-label", isGuests ? T.guestsPerNeighborhood : T.eventsPerNeighborhood);
+    if (title) title.textContent = isGuests ? T.guestsPerNeighborhood : T.eventsPerNeighborhood;
+    if (items) items.innerHTML = metricLegendRows().map(([label, color]) => `<span><i style="--density-color: ${color}"></i>${label}</span>`).join("");
+    document.querySelectorAll("#viewToggle button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.view === state.viewBy));
+  }
   const eventMinutes = ev.map((e) => {
     if (e[2] < 0) return null;
     const m = /^(\d{1,2}):(\d{2})/.exec(e[6]);
@@ -1529,6 +1676,12 @@ body.is-drawer-open .map-stats {
     $("side").setAttribute("aria-label", T.sideLabel);
     $("theme").setAttribute("aria-label", T.theme);
     document.querySelectorAll("#theme button").forEach((b) => { b.title = T[b.dataset.t]; b.setAttribute("aria-label", T[b.dataset.t]); });
+    const viewToggle = $("viewToggle");
+    if (viewToggle) viewToggle.setAttribute("aria-label", T.viewBy);
+    document.querySelector(".view-toggle-label").textContent = T.viewBy;
+    document.querySelector('[data-view="events"]').textContent = T.viewEvents;
+    document.querySelector('[data-view="guests"]').textContent = T.viewGuests;
+    updateMetricUI();
     updateReplayPanel();
     buildDays();
     buildDomainButtons();
@@ -1717,11 +1870,20 @@ body.is-drawer-open .map-stats {
 
   // Per-neighborhood counts after all filters.
   function hoodStats() {
-    const n = new Array(hoods.length).fill(0);
+    const events = new Array(hoods.length).fill(0);
+    const guests = new Array(hoods.length).fill(0);
+    const guestEvents = new Array(hoods.length).fill(0);
     for (let i = 0; i < ev.length; i++) {
-      if (passes(i)) n[ev[i][0]]++;
+      if (!passes(i)) continue;
+      const h = ev[i][0];
+      events[h]++;
+      if (hasGuestCount(ev[i])) {
+        guests[h] += guestCount(ev[i]);
+        guestEvents[h]++;
+      }
     }
-    return { n };
+    const n = events.map((count, i) => metricValue(count, guests[i]));
+    return { n, events, guests, guestEvents };
   }
   let stats = null;
   function hoodGeoJSON() {
@@ -1729,28 +1891,47 @@ body.is-drawer-open .map-stats {
       type: "FeatureCollection",
       features: hoods.map((h, i) => [h, i]).filter(([h, i]) => h.ll && stats.n[i] > 0).map(([h, i]) => ({
         type: "Feature", id: i, geometry: { type: "Point", coordinates: h.ll },
-        properties: { i, name: h.name, n: stats.n[i] },
+        properties: { i, name: h.name, n: stats.n[i], label: metricLabel(stats.n[i]), events: stats.events[i], guests: stats.guests[i], guestEvents: stats.guestEvents[i] },
       })),
     };
   }
 
-  const RADIUS = ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 13, 5, 19, 10, 26, 20, 38, 34, 50];
-  const GLOW_RADIUS = ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 24, 5, 42, 10, 62, 20, 88, 34, 118];
-  const countColor = ["step", ["get", "n"], css("--density-low"), 10, css("--density-mid"), 40, css("--density-high")];
-  const glowColor = ["step", ["get", "n"], "rgba(84,162,255,.38)", 10, "rgba(246,178,60,.42)", 40, "rgba(255,78,100,.50)"];
+  const RADIUS_EVENTS = ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 13, 5, 19, 10, 26, 20, 38, 34, 50];
+  const GLOW_RADIUS_EVENTS = ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 24, 5, 42, 10, 62, 20, 88, 34, 118];
+  const RADIUS_GUESTS = ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 13, 22, 22, 45, 34, 70, 46, 95, 56];
+  const GLOW_RADIUS_GUESTS = ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 24, 22, 48, 45, 72, 70, 98, 95, 126];
+  const bubbleRadius = () => state.viewBy === "guests" ? RADIUS_GUESTS : RADIUS_EVENTS;
+  const glowRadius = () => state.viewBy === "guests" ? GLOW_RADIUS_GUESTS : GLOW_RADIUS_EVENTS;
+  const countColor = () => state.viewBy === "guests"
+    ? ["step", ["get", "n"], css("--density-low"), 500, css("--density-mid"), 2000, css("--density-high")]
+    : ["step", ["get", "n"], css("--density-low"), 10, css("--density-mid"), 40, css("--density-high")];
+  const glowColor = () => state.viewBy === "guests"
+    ? ["step", ["get", "n"], "rgba(84,162,255,.38)", 500, "rgba(246,178,60,.42)", 2000, "rgba(255,78,100,.50)"]
+    : ["step", ["get", "n"], "rgba(84,162,255,.38)", 10, "rgba(246,178,60,.42)", 40, "rgba(255,78,100,.50)"];
+  const ringColor = () => state.viewBy === "guests"
+    ? ["step", ["get", "n"], "rgba(84,162,255,.78)", 500, "rgba(255,210,120,.82)", 2000, "rgba(255,86,92,.9)"]
+    : ["step", ["get", "n"], "rgba(84,162,255,.78)", 10, "rgba(255,210,120,.82)", 40, "rgba(255,86,92,.9)"];
+  const labelColor = () => state.viewBy === "guests"
+    ? ["case", ["<", ["get", "n"], 500], "#ffffff", [">=", ["get", "n"], 2000], "#ffffff", "#15201f"]
+    : ["case", ["<", ["get", "n"], 10], "#ffffff", [">=", ["get", "n"], 40], "#ffffff", "#15201f"];
   function paintBubbles() {
+    const radius = bubbleRadius();
+    const glow = glowRadius();
     if (map.getLayer("bub-glow")) {
-      map.setPaintProperty("bub-glow", "circle-color", glowColor);
-      map.setPaintProperty("bub-glow", "circle-radius", GLOW_RADIUS);
+      map.setPaintProperty("bub-glow", "circle-color", glowColor());
+      map.setPaintProperty("bub-glow", "circle-radius", glow);
     }
     if (map.getLayer("bub-ring")) {
-      map.setPaintProperty("bub-ring", "circle-stroke-color", ["step", ["get", "n"], "rgba(84,162,255,.78)", 10, "rgba(255,210,120,.82)", 40, "rgba(255,86,92,.9)"]);
-      map.setPaintProperty("bub-ring", "circle-radius", ["+", RADIUS, 6]);
+      map.setPaintProperty("bub-ring", "circle-stroke-color", ringColor());
+      map.setPaintProperty("bub-ring", "circle-radius", ["+", radius, 6]);
     }
-    map.setPaintProperty("bub", "circle-color", countColor);
+    if (map.getLayer("bub-sel")) map.setPaintProperty("bub-sel", "circle-radius", ["+", radius, 3]);
+    map.setPaintProperty("bub", "circle-radius", radius);
+    map.setPaintProperty("bub", "circle-color", countColor());
     map.setPaintProperty("bub", "circle-stroke-color", isDark() ? "rgba(255,236,210,.72)" : "#ffffff");
     map.setPaintProperty("bub", "circle-stroke-width", 1.9);
-    map.setPaintProperty("bub-n", "text-color", ["case", ["<", ["get", "n"], 10], "#ffffff", [">=", ["get", "n"], 40], "#ffffff", "#15201f"]);
+    map.setPaintProperty("bub-n", "text-color", labelColor());
+    map.setLayoutProperty("bub-n", "text-size", ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 11.5, state.viewBy === "guests" ? 70 : 20, 15]);
   }
 
   function addLayers() {
@@ -1766,22 +1947,24 @@ body.is-drawer-open .map-stats {
       clusterProperties: { n: ["+", ["get", "n"]] },
     });
     map.addSource("hl", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    const radius = bubbleRadius();
+    const glow = glowRadius();
     map.addLayer({ id: "bub-glow", type: "circle", source: "hoods", paint: {
-      "circle-radius": GLOW_RADIUS, "circle-color": glowColor, "circle-blur": .72, "circle-opacity": .78,
+      "circle-radius": glow, "circle-color": glowColor(), "circle-blur": .72, "circle-opacity": .78,
     } });
     map.addLayer({ id: "bub-ring", type: "circle", source: "hoods", paint: {
-      "circle-radius": ["+", RADIUS, 6], "circle-color": "rgba(0,0,0,0)", "circle-stroke-width": 2.2,
+      "circle-radius": ["+", radius, 6], "circle-color": "rgba(0,0,0,0)", "circle-stroke-width": 2.2,
       "circle-stroke-opacity": ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, .32, 20, .78],
     } });
-    map.addLayer({ id: "bub", type: "circle", source: "hoods", paint: { "circle-radius": RADIUS, "circle-opacity": .96 } });
+    map.addLayer({ id: "bub", type: "circle", source: "hoods", paint: { "circle-radius": radius, "circle-opacity": .96 } });
     map.addLayer({ id: "bub-sel", type: "circle", source: "hoods", filter: ["==", ["get", "i"], -1], paint: {
-      "circle-radius": ["+", RADIUS, 3], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": accent, "circle-stroke-width": 3.5,
+      "circle-radius": ["+", radius, 3], "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": accent, "circle-stroke-width": 3.5,
     } });
     map.addLayer({ id: "hl", type: "circle", source: "hl", paint: {
       "circle-radius": 26, "circle-color": "rgba(0,0,0,0)", "circle-stroke-color": accent, "circle-stroke-width": 3,
     } });
     map.addLayer({ id: "bub-n", type: "symbol", source: "hoods", layout: {
-      "text-field": ["to-string", ["get", "n"]], "text-font": ["Noto Sans Bold"],
+      "text-field": ["case", ["has", "point_count"], ["to-string", ["get", "n"]], ["get", "label"]], "text-font": ["Noto Sans Bold"],
       "text-size": ["interpolate", ["linear"], ["sqrt", ["get", "n"]], 1, 11.5, 20, 15], "text-allow-overlap": true,
     } });
     map.addLayer({ id: "bub-name", type: "symbol", source: "hoods", filter: ["!", ["has", "point_count"]], minzoom: 12.6, layout: {
@@ -1816,7 +1999,10 @@ body.is-drawer-open .map-stats {
       map.getCanvas().style.cursor = "pointer";
       if (detailPopup.isOpen()) return;
       const f = e.features[0], p = f.properties;
-      const txt = p.cluster ? T.popCluster(p.n, p.point_count) : T.popHood(esc(p.name), p.n);
+      const metricText = state.viewBy === "guests" ? `${metricLabel(p.n)} guest signal` : `${fmt(p.n)} events`;
+      const txt = p.cluster
+        ? `<b>${metricText}</b><div class="m">${p.point_count} neighborhoods · click to zoom</div>`
+        : `<b>${esc(p.name)}</b><div class="m">${metricText} · click to filter</div>`;
       popup.setLngLat(f.geometry.coordinates).setHTML(`<div class="pop">${txt}</div>`).addTo(map);
     });
     map.on("mouseleave", "bub", () => { map.getCanvas().style.cursor = ""; popup.remove(); });
@@ -1914,6 +2100,25 @@ body.is-drawer-open .map-stats {
           }).join("")}</div>
         </div>`
       : "";
+    const guestTotal = list.reduce((sum, e) => sum + guestCount(e), 0);
+    const guestVisible = list.filter(hasGuestCount).length;
+    const guestSignal = guestVisible
+      ? `<div class="guest-signal">
+          <b>${T.guestSignalTitle}</b>
+          <span>${T.guestSignal(fmt(guestTotal), fmt(guestVisible))}</span>
+        </div>`
+      : `<div class="guest-signal"><b>${T.guestSignalTitle}</b><span>${T.noGuestSignal}</span></div>`;
+    const topGuestEvents = list.filter(hasGuestCount).sort((a, b) => guestCount(b) - guestCount(a) || a[4].localeCompare(b[4])).slice(0, 5);
+    const topEvents = topGuestEvents.length
+      ? `<div class="top-events">
+          <div class="top-events-title">${T.topEventsTitle}</div>
+          ${topGuestEvents.map((e) => `<a class="top-event" href="${esc(eventUrl(e))}" target="_blank" rel="noopener">
+            <strong title="${esc(e[4])}">${esc(e[4])}</strong>
+            <span>${esc(e[5])} · ${T.days[e[1]]} ${DATES[e[1]]}</span>
+            <b>${fmt(guestCount(e))}</b>
+          </a>`).join("")}
+        </div>`
+      : "";
     box.innerHTML = `
       <div class="hood-summary-top">
         <div>
@@ -1922,7 +2127,9 @@ body.is-drawer-open .map-stats {
         </div>
         <button type="button" class="drawer-close" id="drawerClose" aria-label="${T.clear}">×</button>
       </div>
-      ${themeShare}`;
+      ${themeShare}
+      ${guestSignal}
+      ${topEvents}`;
     box.classList.add("is-visible");
     const close = $("drawerClose");
     if (close) close.onclick = () => selectHood(state.hood);
@@ -1934,7 +2141,13 @@ body.is-drawer-open .map-stats {
       .sort((a, b) => a[1] - b[1] || (a[2] < 0) - (b[2] < 0) || a[6].localeCompare(b[6]) || a[4].localeCompare(b[4]));
     document.body.classList.toggle("is-drawer-open", state.hood !== null);
     const where = state.hood !== null ? T.inHood(esc(hoods[state.hood].name)) : !map ? "" : state.includeOff ? T.inViewOff : T.inView;
-    $("count").innerHTML = T.count(fmt(list.length), where);
+    if (state.viewBy === "guests") {
+      const guestTotal = list.reduce((sum, e) => sum + guestCount(e), 0);
+      $("count").innerHTML = T.guestCount(fmt(guestTotal), where);
+    } else {
+      $("count").innerHTML = T.count(fmt(list.length), where);
+    }
+    updateMetricUI();
     drawChips();
     drawHoodSummary(list);
     const off = base.filter((i) => !hoods[ev[i][0]].ll).length;
@@ -2057,6 +2270,12 @@ body.is-drawer-open .map-stats {
   const replayBtn = $("mapReplayBtn");
   const replayTime = $("replayTime");
   const replayFill = $("replayFill");
+  $("viewToggle").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-view]");
+    if (!btn || btn.dataset.view === state.viewBy) return;
+    state.viewBy = btn.dataset.view;
+    update();
+  });
 
   function minuteLabel(minute) {
     if (minute === null || minute === undefined) return T.replayStatic;

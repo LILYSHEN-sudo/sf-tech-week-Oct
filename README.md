@@ -52,3 +52,12 @@ http://localhost:8000/
 ```
 
 The basemap, MapLibre, and web fonts require internet access. The event payload is served locally from `web/data.js`.
+
+## Files to Keep
+
+- `web/index.html`, `web/data.js`, and `web/partiful-links.js` are the published site. The links file fills 10 missing event URLs in the current payload.
+- `web/build_data.py` builds `web/data.js` from the local `data/00-ready-to-use-data/sf-tech-week-events-master-slim.json` and `data/source-data/01-sf-event-data-1710/raw/sf-analysis-neighborhoods.geojson`.
+- `data/` and `docs/` are local working material excluded by `.gitignore`; they are not included in the GitHub Pages deployment. Keep source snapshots and research archives if you may need to reproduce or audit the data.
+- `data/output/partiful-description-cache/` and `data/source-data/02-host-logo-guest-list-extract/icons/` are large local collection assets, not website dependencies. They can be removed only if you no longer need to rerun or audit those collection steps.
+
+To rebuild the web payload after editing the local master JSON, run `python3 web/build_data.py` and check the generated `web/data.js` before publishing.
